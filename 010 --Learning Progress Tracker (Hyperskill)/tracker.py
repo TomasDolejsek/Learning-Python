@@ -5,13 +5,16 @@ class Student:
         self.firstname = firstname
         self.lastname = lastname
         self.email = email
-        self.c_points = [0, 0, 0, 0]
+        self.c_points = {'Python': 0, 'DSA': 0, 'Databases': 0, 'Flask': 0}
 
     def __str__(self):
         return f"Student: {self.firstname} {self.lastname}. Email: {self.email} Points: {self.c_points}"
 
     def add_points(self, new_points):
-        self.c_points = [self.c_points[i] + new_points[i] for i in range(len(new_points))]
+        i = 0
+        for course in self.c_points.keys():
+            self.c_points[course] += new_points[i]
+            i += 1
         print("Points updated.")
 
 def correct_input(input, valid_input):
@@ -53,7 +56,7 @@ def add_student(data):
     if not re.match(emailpattern, email):
         print("Incorrect email.")
         return False
-    for id, student in students_dict.items():
+    for student in students_dict.values():
         if student.email == email:
             print("This email is already taken.")
             return False
@@ -79,7 +82,7 @@ def add_points_menu():
             print("Incorrect points format.")
             continue
         students_dict[data[0]].add_points(points)
-
+        
 def list_students():
     print("Students:")
     if not students_dict:
@@ -89,7 +92,6 @@ def list_students():
         print(id)
 
 def find_points():
-    courses = ('Python', 'DSA', 'Databases', 'Flask')
     print("Enter an id and points or 'back' to return")
     while True:
         id = input().strip()
@@ -99,8 +101,8 @@ def find_points():
             print(f"No student is found for id={id}.")
             continue
         print(f"{id} points: ", end = '')
-        for i in range(len(courses)):
-            print(f"{courses[i]}={students_dict[id].c_points[i]} ", end='')
+        for course, points in students_dict[id].c_points.items():
+            print(f"{course}={points} ", end='')
         print()
 
 def main_menu():
