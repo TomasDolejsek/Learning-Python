@@ -5,21 +5,19 @@ class Student:
         self.firstname = firstname
         self.lastname = lastname
         self.email = email
-        self.c_points = list()
+        self.c_points = [0, 0, 0, 0]
 
     def __str__(self):
-        return f"Student: {self.firstname} {self.lastname}. Email: {self.email}"
+        return f"Student: {self.firstname} {self.lastname}. Email: {self.email} Points: {self.c_points}"
 
-    def update_points(self, new_points):
-        self.c_points = new_points
+    def add_points(self, new_points):
+        self.c_points = [self.c_points[i] + new_points[i] for i in range(len(new_points))]
         print("Points updated.")
-
-    def info(self):
-        return "NEco"
 
 def correct_input(input, valid_input):
     if input not in valid_input: return False
     else: return True
+
 def add_student_menu():
     print("Enter student credentials or 'back' to return:")
     while True:
@@ -36,6 +34,7 @@ def add_student_menu():
             print("The student has been added")
             continue
     print(f"Total {len(students_dict)} students have been added.")
+
 def add_student(data):
     emailpattern = "^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$"
     firstnamepattern = "^[a-zA-Z]+(-|')?[a-zA-Z]+$"
@@ -43,7 +42,7 @@ def add_student(data):
     firstname = data[0]
     lastname = " ".join(data[1:-1])
     email = data[-1]
-    student_id = ('00' + f"{len(students_dict) + 1}")[-3:]
+    student_id = ('0000' + f"{len(students_dict) + 1}")[-5:]
 
     if not re.match(firstnamepattern, firstname):
         print("Incorrect first name.")
@@ -62,13 +61,16 @@ def add_student(data):
     return True
 
 def add_points_menu():
-    points = list()
     print("Enter an id and points or 'back' to return")
     while True:
+        points = list()
         data = input().strip().split()
         try:
             if data[0] == 'back':
                 break
+            if data[0] not in students_dict.keys():
+                print(f"No student is found for id={data[0]}.")
+                continue
             if len(data) != 5: raise IndexError
             for number in data[1:]:
                 if int(number) <= 0: raise ValueError
@@ -76,10 +78,7 @@ def add_points_menu():
         except:
             print("Incorrect points format.")
             continue
-        if data[0] not in students_dict.keys():
-            print(f"No student is found for id={data[0]}.")
-            continue
-        students_dict[data[0]].update_points(points)
+        students_dict[data[0]].add_points(points)
 
 def list_students():
     print("Students:")
@@ -105,6 +104,8 @@ def find_points():
         print()
 
 def main_menu():
+    valid_input = ('add students', 'add points', 'list', 'find', 'back', 'exit')
+    print("Learning Progress Tracker.")
     while True:
         user_input = input()
         if not user_input.strip():
@@ -132,10 +133,6 @@ def main_menu():
             print("Bye!")
             exit()
 
-# main program
-valid_input = ('add students', 'add points', 'list', 'find', 'back', 'exit')
-print("Learning Progress Tracker.")
 students_dict = dict()
-
 if __name__ == '__main__':
     main_menu()
