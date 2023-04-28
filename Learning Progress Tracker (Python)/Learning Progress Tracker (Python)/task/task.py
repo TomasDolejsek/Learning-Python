@@ -1,2 +1,0 @@
-
-print("Learning progress tracker")
