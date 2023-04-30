@@ -55,13 +55,60 @@ class CourseDatabase(Database):
                       "Flask": Course(550)
                       }
         self.howmany = 4
-    
+
     def update_all(self, student_id, new_points):
         i = 0
         for name in self.data.keys():
             if new_points[i] != 0:  # new course activity
                 self.data[name].update_course(student_id, new_points[i])
             i += 1
+
+    def display_statistics(self):
+        popularity = dict()
+        activity = dict()
+        complexity = dict()
+        for key, course in self.data.items():
+            popularity[key] = len(course.visitors)
+            activity[key] = course.activity
+            try:
+                complexity[key] = 1 / (course.ptotal / course.activity)
+            except ZeroDivisionError:
+                complexity[key] = 0
+        display, popularity = self.what_to_display(max(popularity.values(), default = 0), popularity)
+        print(f"Most popular: {display}")
+        display, popularity = self.what_to_display(min(popularity.values(), default = 0), popularity)
+        print(f"Least popular: {display}")
+        display, activity = self.what_to_display(max(activity.values(), default = 0), activity)
+        print(f"Highest activity: {display}")
+        display, activity = self.what_to_display(min(activity.values(), default = 0), activity)
+        print(f"Lowest activity: {display}")
+        display, complexity = self.what_to_display(min(complexity.values(), default = 0), complexity)
+        print(f"Easiest course: {display}")
+        display, complexity = self.what_to_display(max(complexity.values(), default = 0), complexity)
+        print(f"Hardest course: {display}")
+
+    def what_to_display(self, compare, some_ity):
+        new_ity = some_ity
+        if all(map(lambda x: x == 0, some_ity.values())):  # some_ity dict is empty
+            text = 'n/a'
+            return text, new_ity
+        some_ity = dict(filter(lambda x: x[1] == compare, some_ity.items()))
+        for key in some_ity:
+            del new_ity[key]
+        text = ', '.join(some_ity.keys())
+        return text, new_ity
+
+    def display_visitors(self, course):
+        enrolled = dict()
+        for id in self.data[course].visitors:
+            points = students.data[id].c_points[course]
+            completed = points / self.data[course].limit * 100
+            enrolled[id] = (points, completed)
+        enrolled = sorted(enrolled.items(), key=lambda x: (-x[1][0], x[0]))
+        print(course)
+        print("id\t\tpoints\tcompleted")
+        for stud in enrolled:
+            print(f"{stud[0]}\t{stud[1][0]}\t\t{stud[1][1]:.1f}%")
 
 class Student:
     def __init__(self, firstname, lastname, email):
@@ -146,13 +193,13 @@ class UserInterface:
         pass
 
 class MainMenu(UserInterface):
-    def __init__(self, greeting):
-        self.valid_commands = ('add students', 'add points', 'list', 'find', 'back', 'exit')
-        super().__init__(greeting)
+    def __init__(self):
+        self.valid_commands = ('add students', 'add points', 'list', 'find', 'statistics', 'back', 'exit')
+        super().__init__("Learning Progress Tracker.")
     
     def start(self):
         while True:
-            user = input()
+            user = input().lower()
             if not user.strip():
                 print("No input")
                 continue
@@ -160,16 +207,19 @@ class MainMenu(UserInterface):
                 print("Unknown command!")
                 continue
             if user == self.valid_commands[0]:
-                menu = AddStudentsMenu("Enter student credentials or 'back' to return:")
+                menu = AddStudentsMenu()
                 continue
             if user == self.valid_commands[1]:
-                menu = AddPointsMenu("Enter student credentials or 'back' to return:")
+                menu = AddPointsMenu()
                 continue
             if user == self.valid_commands[2]:
                 students.display_keys()
                 continue
             if user == self.valid_commands[3]:
-                menu = FindMenu("Enter student credentials or 'back' to return:")
+                menu = FindMenu()
+                continue
+            if user == self.valid_commands[4]:
+                menu = StatisticsMenu()
                 continue
             if user == self.valid_commands[-2]:
                 print("Enter 'exit' to exit the program")
@@ -179,18 +229,17 @@ class MainMenu(UserInterface):
                 exit()
     
 class AddStudentsMenu(UserInterface):
-    def __init__(self, greeting):
+    def __init__(self):
         self.valid_commands = ('back',)
         self.added = 0
-        super().__init__(greeting)
+        super().__init__("Enter student credentials or 'back' to return:")
     
     def start(self):
         while True:
-            user = input().split()
-            if not user:
-                continue
-            if user[0] == self.valid_commands[-1]:
+            user = input().lower()
+            if user == self.valid_commands[-1]:
                 break
+            user = user.split()
             validator = DataValidator()
             validated_data = validator.validate_student_data(user)
             if not validated_data:
@@ -200,17 +249,16 @@ class AddStudentsMenu(UserInterface):
         print(f"Total {self.added} students have been added.")
 
 class AddPointsMenu(UserInterface):
-    def __init__(self, greeting):
+    def __init__(self):
         self.valid_commands = ('back',)
-        super().__init__(greeting)
+        super().__init__("Enter an id and points or 'back' to return:")
     
     def start(self):
         while True:
-            user = input().split()
-            if not user[0]:
-                continue
-            if user[0] == self.valid_commands[-1]:
+            user = input().lower()
+            if user == self.valid_commands[-1]:
                 break
+            user = user.split()
             if user[0] not in students.data.keys():
                 print(f"No student is found for id={user[0]}.")
                 continue
@@ -222,20 +270,45 @@ class AddPointsMenu(UserInterface):
             students.update_item(user[0], validated_data)
         
 class FindMenu(UserInterface):
-    def __init__(self, greeting):
+    def __init__(self):
         self.valid_commands = ('back',)
-        super().__init__(greeting)
+        super().__init__("Enter an id and points or 'back' to return:")
     
     def start(self):
         while True:
-            user = input().split()
-            if not user:
-                continue
-            if user[0] == self.valid_commands[-1]:
+            user = input().strip().lower()
+            if user == self.valid_commands[-1]:
                 break
-            students.display_points(user[0])
-        
-students = StudentDatabase()
-courses = CourseDatabase()
+            students.display_points(user)
+
+class StatisticsMenu(UserInterface):
+    def __init__(self):
+        self.valid_commands = ('python', 'dsa', 'databases', 'flask', 'back')
+        super().__init__("Type the name of a course to see details or 'back' to quit")
+
+    def start(self):
+        courses.display_statistics()
+        while True:
+            user = input().lower()
+            if user not in self.valid_commands:
+                print("Unknown course.")
+                continue
+            if user == self.valid_commands[0]:
+                courses.display_visitors('Python')
+                continue
+            if user == self.valid_commands[1]:
+                courses.display_visitors('DSA')
+                continue
+            if user == self.valid_commands[2]:
+                courses.display_visitors('Databases')
+                continue
+            if user == self.valid_commands[3]:
+                courses.display_visitors('Flask')
+                continue
+            if user == self.valid_commands[-1]:
+                break
+
 if __name__ == '__main__':
-    main_menu = MainMenu("Learning Progress Tracker.")
+    students = StudentDatabase()
+    courses = CourseDatabase()
+    main_menu = MainMenu()
