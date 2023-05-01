@@ -23,6 +23,10 @@ class Database:
             print(id) 
 
 class StudentDatabase(Database):
+    def __init__(self):
+        self.notifies = dict()
+        super().__init__()
+
     def new_item(self, values):
         id = ('0000' + f"{self.howmany + 1}")[-5:]
         super().new_item(id, Student(values[0], values[1], values[2]))
@@ -30,6 +34,7 @@ class StudentDatabase(Database):
     
     def update_item(self, id, points):
         self.data[id].update_points(points)
+        self.check_if_completed(id)
         
     def display_keys(self):
         print("Students:")
@@ -46,6 +51,26 @@ class StudentDatabase(Database):
         for course, points in self.data[id].c_points.items():
             print(f"{course}={points} ", end='')
         print()
+
+    def check_if_completed(self, id):
+        limits = dict([(cou, lim.limit) for cou, lim in courses.data.items()])
+        for course, points in self.data[id].c_points.items():
+            if points >= limits[course]:
+                if id not in self.notifies.keys():
+                    self.notifies[id] = [course,]
+                else:
+                    self.notifies[id].append(course)
+
+    def notify(self):
+        entries = len(self.notifies.keys())
+        for id, finished in self.notifies.items():
+            for course in finished:
+                print(f"To: {self.data[id].email}")
+                print("Re: Your Learning Progress")
+                print(f"Hello, {self.data[id].firstname} {self.data[id].lastname}! ", end = '')
+                print(f"You have accomplished our {course} course!")
+        self.notifies.clear()
+        print(f"Total {entries} students have been notified.")
 
 class CourseDatabase(Database):
     def __init__(self):
@@ -194,7 +219,7 @@ class UserInterface:
 
 class MainMenu(UserInterface):
     def __init__(self):
-        self.valid_commands = ('add students', 'add points', 'list', 'find', 'statistics', 'back', 'exit')
+        self.valid_commands = ('add students', 'add points', 'list', 'find', 'statistics', 'notify', 'back', 'exit')
         super().__init__("Learning Progress Tracker.")
     
     def start(self):
@@ -207,19 +232,22 @@ class MainMenu(UserInterface):
                 print("Unknown command!")
                 continue
             if user == self.valid_commands[0]:
-                menu = AddStudentsMenu()
+                AddStudentsMenu()
                 continue
             if user == self.valid_commands[1]:
-                menu = AddPointsMenu()
+                AddPointsMenu()
                 continue
             if user == self.valid_commands[2]:
                 students.display_keys()
                 continue
             if user == self.valid_commands[3]:
-                menu = FindMenu()
+                FindMenu()
                 continue
             if user == self.valid_commands[4]:
-                menu = StatisticsMenu()
+                StatisticsMenu()
+                continue
+            if user == self.valid_commands[5]:
+                students.notify()
                 continue
             if user == self.valid_commands[-2]:
                 print("Enter 'exit' to exit the program")
@@ -227,7 +255,7 @@ class MainMenu(UserInterface):
             if user == self.valid_commands[-1]:
                 print("Bye!")
                 exit()
-    
+
 class AddStudentsMenu(UserInterface):
     def __init__(self):
         self.valid_commands = ('back',)
@@ -236,7 +264,7 @@ class AddStudentsMenu(UserInterface):
     
     def start(self):
         while True:
-            user = input().lower()
+            user = input()
             if user == self.valid_commands[-1]:
                 break
             user = user.split()
@@ -255,7 +283,7 @@ class AddPointsMenu(UserInterface):
     
     def start(self):
         while True:
-            user = input().lower()
+            user = input()
             if user == self.valid_commands[-1]:
                 break
             user = user.split()
@@ -276,7 +304,7 @@ class FindMenu(UserInterface):
     
     def start(self):
         while True:
-            user = input().strip().lower()
+            user = input().strip()
             if user == self.valid_commands[-1]:
                 break
             students.display_points(user)
@@ -311,4 +339,4 @@ class StatisticsMenu(UserInterface):
 if __name__ == '__main__':
     students = StudentDatabase()
     courses = CourseDatabase()
-    main_menu = MainMenu()
+    MainMenu()
