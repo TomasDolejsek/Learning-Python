@@ -263,12 +263,12 @@ class AddStudentsMenu(UserInterface):
         super().__init__("Enter student credentials or 'back' to return:")
     
     def start(self):
+        validator = DataValidator()
         while True:
             user = input()
             if user == self.valid_commands[-1]:
                 break
             user = user.split()
-            validator = DataValidator()
             validated_data = validator.validate_student_data(user)
             if not validated_data:
                 continue
@@ -282,6 +282,7 @@ class AddPointsMenu(UserInterface):
         super().__init__("Enter an id and points or 'back' to return:")
     
     def start(self):
+        validator = DataValidator()
         while True:
             user = input()
             if user == self.valid_commands[-1]:
@@ -290,11 +291,10 @@ class AddPointsMenu(UserInterface):
             if user[0] not in students.data.keys():
                 print(f"No student is found for id={user[0]}.")
                 continue
-            validator = DataValidator()
             validated_data = validator.validate_courses_points(user)
             if not validated_data:
                 continue
-            courses.update_all(user[0], validated_data)  # databases updates    
+            courses.update_all(user[0], validated_data)
             students.update_item(user[0], validated_data)
         
 class FindMenu(UserInterface):
