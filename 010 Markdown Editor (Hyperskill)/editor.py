@@ -80,6 +80,9 @@ class MainMenu:
                 print("Special commands: !help !done")
                 continue
             if user == self.valid_commands[-1]:
+                file_to_save = open('output.md', 'w')
+                file_to_save.write(whole_text)
+                file_to_save.close()
                 exit()
 
 if __name__ == '__main__':
