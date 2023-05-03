@@ -1,5 +1,5 @@
 import os.path
-
+import logging
 
 class Flashcards:
     def __init__(self):
@@ -22,7 +22,7 @@ class Flashcards:
                 continue
             else:
                 break
-        self.deck[card] = definition
+        self.deck[card] = [definition, '0']
         print(f"The pair (\"{card}\": \"{definition}\") has been added.\n")
 
     def remove_card(self):
@@ -42,7 +42,7 @@ class Flashcards:
             lines = file.read().splitlines()
             for card in lines:
                 card = card.split(':')
-                self.deck[card[0]] = card[1]
+                self.deck[card[0]] = [card[1], card[2]]
             file.close()
             print(f"{len(lines)} cards have been loaded.\n")
 
@@ -50,8 +50,8 @@ class Flashcards:
         lines = ''
         filename = input("File name:\n")
         file = open(filename, "w")
-        for term, definition in self.deck.items():
-            lines += f"{term}:{definition}\n"
+        for card, backside in self.deck.items():
+            lines += f"{card}:{backside[0]}:{backside[1]}\n"
         file.write(lines)
         file.close()
         print(f"{len(self.deck.keys())} cards have been saved.\n")
@@ -71,14 +71,15 @@ class Flashcards:
         while True:
             if counter == howmany:
                 break
-            for term, definition in self.deck.items():
-                answer = input(f"Print the definition of \"{term}\":\n")
-                if answer == definition:
+            for card, backside in self.deck.items():
+                answer = input(f"Print the definition of \"{card}\":\n")
+                if answer == backside[0]:
                     print("Correct!")
                 else:
-                    print(f"Wrong. The right answer is \"{definition}\"", end='')
-                    if answer in self.deck.values():
-                        searched_key = [k for k, v in self.deck.items() if v == answer]
+                    print(f"Wrong. The right answer is \"{backside[0]}\"", end='')
+                    self.deck[card] = [self.deck[card][0], str(int(self.deck[card][1]) + 1)]
+                    searched_key = [k for k, v in self.deck.items() if v[0] == answer]
+                    if searched_key:
                         print(f", but your definition is correct for \"{searched_key[0]}\"")
                     else:
                         print()
@@ -86,16 +87,35 @@ class Flashcards:
                 if counter == howmany:
                     break
 
+    def hardest_card(self):
+        maximum = max([int(v[1]) for v in self.deck.values()])
+        if maximum > 0:
+            searched_keys = [k for k, v in self.deck.items() if int(v[1]) == maximum]
+            print(f"The hardest card{'s are' if len(searched_keys) > 1 else ' is'} \"", end='')
+            print(*searched_keys, sep='", "', end='')
+            print(f"\". You have {maximum} error{'s' if maximum > 1 else ''} answering it.\n")
+        else:
+            print("There are no cards with errors.")
+
+    def reset_stats(self):
+        for card, backside in self.deck.items():
+            self.deck[card] = [backside[0], '0']
+        print("Card statistics have been reset.")
 
 class MainMenu:
     def __init__(self):
-        self.valid_commands = ('add', 'remove', 'import', 'export', 'ask', 'exit')
+        self.valid_commands = ('add', 'remove', 'import', 'export', 'ask',
+                               'exit', 'log', 'hardest card', 'reset stats'
+                               )
         self.start()
 
     def start(self):
         game = Flashcards()
         while True:
-            user = input("Input the action (add, remove, import, export, ask, exit):\n").strip().lower()
+            print("Input the action (", end='')
+            print(*self.valid_commands, sep=', ', end='')
+            print("):")
+            user = input().lower()
             if not user:
                 continue
             if user not in self.valid_commands:
@@ -116,9 +136,15 @@ class MainMenu:
             if user == self.valid_commands[4]:
                 game.ask_player()
                 continue
-            if user == self.valid_commands[-1]:
+            if user == self.valid_commands[5]:
                 print("Bye bye!")
                 exit()
+            if user == self.valid_commands[7]:
+                game.hardest_card()
+                continue
+            if user == self.valid_commands[8]:
+                game.reset_stats()
+                continue
 
 
 if __name__ == '__main__':
