@@ -1,1 +1,0 @@
-https://blog.finxter.com/7-easy-steps-to-redirect-your-standard-output-to-a-variable-python/
