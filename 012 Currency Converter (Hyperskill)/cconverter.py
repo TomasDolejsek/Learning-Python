@@ -25,9 +25,8 @@ class Converter:
 
     def import_rates(self, searched_cur):
         url = self.urlpage + self.main_currency + '.json'
-        page = requests.get(url)
-        data = json.loads(page.text)
-        curdata = data.get(searched_cur)
+        r = requests.get(url)
+        curdata = r.json()[searched_cur]
         self.currency_rates[searched_cur] = curdata['rate']
         return curdata['rate']
 
