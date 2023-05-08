@@ -181,13 +181,18 @@ class EquationValidator:
             char = exp[i]
             if char == '(':
                 paren += 1
+                
+                # There must be an operator right before '(',
+                # if it's not the first member of the whole expression
+                if exp[i-1] not in self.supported_operators and i > 0:
+                    return 'Invalid assignment' if ident else 'Invalid expression'
             elif char == ')':
                 paren -= 1
-
-                # Check if there isn't operator right before ')' which is wrong.
+                
+                # Check if there isn't operator right before ')', which is wrong.
                 if exp[i-1] in self.supported_operators:
                     return 'Invalid assignment' if ident else 'Invalid expression'
-
+            
             # Check if there aren't mixed operators.
             # There can be only '-' and '+' more than one next to each other.
             elif char in self.supported_operators:
@@ -244,7 +249,6 @@ class EquationValidator:
                 i += 1
                 mark = i
                 if expression[i] == '-' or expression[i] == '+':
-                    member = ''
                     while expression[i] == '-' or expression[i] == '+':
                         member += expression[i]
                         i += 1
@@ -259,10 +263,9 @@ class EquationValidator:
                     while expression[i].isalpha() or expression[i].isnumeric():
                         member += expression[i]
                         i += 1
-                    if op == '-':
-                        member = '-' + member
+                    member = op + member
                     members.append(member)
-                    continue
+                continue
             if expression[i] == ')':
                 members.append(expression[i])
                 i += 1
@@ -273,7 +276,7 @@ class EquationValidator:
                     i += 1
                 members.append(self.normalize_operator(member))
                 continue
-            while expression[i].isalpha() or expression[i].isnumeric():  # this is why we need extra ' '
+            while expression[i].isalpha() or expression[i].isnumeric():
                 member += expression[i]
                 i += 1
             members.append(member)
