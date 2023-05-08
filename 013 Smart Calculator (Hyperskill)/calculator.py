@@ -13,6 +13,51 @@ class Calculator:
         self.variables = dict()
         self.op_priorities = {'-': 1, '+': 1, '*': 2, '/': 2, '^': 3}
 
+    def calculate(self, exp_list, *variable):
+        """
+        1) Replace variables among the expression members with their values
+           using all_variables_known().
+        2) Convert the expression members list to postfix notation for easier calculation
+           using transform_to_postfix().
+        3) Compute the result using compute().
+        4) If there's a variable for assigning to, do so. If not, print the result.
+        """
+        try:
+            exp_list = self.all_variables_known(exp_list)
+            if not exp_list:
+                raise InvalidEquation('Unknown variable')
+        except InvalidEquation as err:
+            print(err)
+            return
+        postfix = self.transform_to_postfix(exp_list)
+        stack = deque()
+        for member in postfix:
+            try:
+                int(member)
+                stack.append(member)
+                continue
+            except ValueError:
+                n1 = stack.pop()
+                n2 = stack.pop()
+                result = self.compute(int(n2), int(n1), member)
+                stack.append(result)
+        if variable:
+            self.variables[variable[0]] = str(stack[-1])
+        else:
+            print(stack[-1])
+
+    def compute(self, num1, num2, operator):
+        if operator == '-':
+            return num1 - num2
+        elif operator == '+':
+            return num1 + num2
+        elif operator == '*':
+            return num1 * num2
+        elif operator == '/':
+            return num1 // num2
+        else:
+            return num1 ** num2
+
     def all_variables_known(self, exp_list):
         """
         1) Search given list of expression members for variables and replace them with their values.
@@ -81,49 +126,6 @@ class Calculator:
             postfix.append(stack.pop())
         return postfix
 
-    def calculate(self, exp_list, *variable):
-        """
-        1) Replace variables among the expression members with their values.
-        2) Convert the expression members list to postfix notation for easier calculation.
-        3) Compute the result.
-        4) If there's a variable for assigning to, do so. If not, print the result.
-        """
-        try:
-            exp_list = self.all_variables_known(exp_list)
-            if not exp_list:
-                raise InvalidEquation('Unknown variable')
-        except InvalidEquation as err:
-            print(err)
-            return
-        postfix = self.transform_to_postfix(exp_list)
-        stack = deque()
-        for member in postfix:
-            try:
-                int(member)
-                stack.append(member)
-                continue
-            except ValueError:
-                n1 = stack.pop()
-                n2 = stack.pop()
-                result = self.compute(int(n2), int(n1), member)
-                stack.append(result)
-        if variable:
-            self.variables[variable[0]] = str(stack[-1])
-        else:
-            print(stack[-1])
-
-    def compute(self, num1, num2, operator):
-        if operator == '-':
-            return num1 - num2
-        elif operator == '+':
-            return num1 + num2
-        elif operator == '*':
-            return num1 * num2
-        elif operator == '/':
-            return num1 // num2
-        else:
-            return num1 ** num2
-
 
 class EquationValidator:
     def __init__(self):
@@ -135,9 +137,11 @@ class EquationValidator:
         """
         1) Separate given equation into left side (before '=') and right side (after '=').
            Note: Separate only by the first appearance of '='.
-        2) Validate both sides of the equation (if there is only one side, then it's an expression).
-        3) If validity is confirmed, separate the expression into list of expression members.
-        4) Send the list to the calculator.
+        2) Validate both sides of the equation (if there is only one side, then it's an expression)
+           using validate().
+        3) If validity is confirmed, separate the expression into list of expression members
+           using separate_expression_members().
+        4) Send the list to the calculator using Calculator.calculate().
         """
         separated = equation.split('=', 1)
         try:
@@ -219,11 +223,12 @@ class EquationValidator:
            and to mark end of the expression.
         2) Go through the expression letter by letter and find logical patterns
            (aka letters, numbers, operators and parentheses).
-        3) Replace all multiple '-' and '+' to single operator (e.g. 3+--6 => 3+6).
+        3) Replace all multiple '-' and '+' to single operator (e.g. 3+--6 => 3+6)
+           using normalize_operator().
         4) Be sure to distinct between signs and operators.
-           e.g. 3-6 => '-' is an operator whereas in -3+6 '-' is a sign.
+           e.g. 3-6 => '-' is an operator. -3+6 => '-' is a sign.
            Be sure to add all operands into the list of expression members with correct signs.
-        5) Next, replace all signs right behind parentheses with -1* or 1* (e.g. -(-6)) => -(-1*6). This is the only way
+        5) Next, replace all signs right behind parentheses with -1* or 1* (e.g. 3-(-6) => 3-(-1*6). This is the only way
            to make postfix calculation work correctly.
         6) Separate these units into the list of expression members and return the list.
         """
@@ -290,6 +295,11 @@ class UserInterface:
         self.start()
 
     def start(self):
+        """
+        1) Take user's input, remove all whitespaces (' ') and check whether it is a command.
+        2) If it's not a command, send it to the validator
+           using EquationValidator.process_equation().
+        """
         while True:
             user = input().replace(' ', '')
             if len(user) == 0:  # empty or none input
