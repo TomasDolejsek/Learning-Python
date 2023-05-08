@@ -21,11 +21,16 @@ class Calculator:
         """
         try:
             for i in range(len(exp_list)):
+                multiplier = 1
                 exp = exp_list[i]
+                if len(exp) > 1:
+                    if exp[0] == '-':
+                        exp = exp[1:]
+                        multiplier = -1
                 *alphas, = map(lambda x: x.isalpha(), exp)
                 if any(alphas):  # variable found
                     if exp in self.variables:
-                        exp_list[i] = self.variables[exp]
+                        exp_list[i] = str(int(self.variables[exp]) * multiplier)
                     else:
                         raise InvalidEquation("Unknown variable")
         except InvalidEquation as err:
@@ -35,20 +40,38 @@ class Calculator:
 
     def separate_expression_members(self, expression):
         """
-        1) Go through the expression letter by letter and find logical patterns
+        1) Add '0+' to the beginning of given expression (to avoid problems with '-' or '+' starting the expression)
+           Also add ' ' to the end of the expression to be always within index range during examination
+        2) Go through the expression letter by letter and find logical patterns
            (aka letters, numbers, operators etc.).
-        2) Separate these units into the list of expression members.
-        3) Return the list.
+        3) Separate these units into the list of expression members and return the list.
         """
         members = list()
         i = 0
-        expression += ' '  # adding extra ' ' to be always in index range
+        expression = '0+' + expression + ' '
         while i < len(expression):
             member = ''
             if expression[i] == ' ':
                 i += 1
                 continue
-            elif expression[i] == '(' or expression[i] == ')':
+            elif expression[i] == '(':
+                members.append(expression[i])
+                i += 1
+                if expression[i] == '-' or expression[i] == '+':
+                    member = ''
+                    while expression[i] == '-' or expression[i] == '+':
+                        member += expression[i]
+                        i += 1
+                    op = self.normalize_operator(member)
+                    member = ''
+                    while expression[i].isalpha() or expression[i].isnumeric():
+                        member += expression[i]
+                        i += 1
+                    if op == '-':
+                        member = '-' + member
+                    members.append(member)
+                continue
+            elif expression[i] == ')':
                 members.append(expression[i])
                 i += 1
                 continue
@@ -71,9 +94,12 @@ class Calculator:
         postfix = deque()
         stack = deque()
         for member in exp_list:
-            if member.isnumeric():
+            try:
+                int(member)
                 postfix.append(member)
                 continue
+            except ValueError:
+                pass
             if member in self.op_priorities:
                 if len(stack) == 0 or stack[-1] == '(':
                     stack.append(member)
@@ -123,15 +149,15 @@ class Calculator:
         stack = deque()
 
         for member in postfix:
-            if member.isnumeric():
+            try:
+                int(member)
                 stack.append(member)
                 continue
-            if member in self.op_priorities:
+            except ValueError:
                 n1 = stack.pop()
                 n2 = stack.pop()
                 result = self.compute(int(n2), int(n1), member)
                 stack.append(result)
-
         if variable:
             self.variables[variable[0]] = str(stack[-1])
         else:
@@ -162,7 +188,7 @@ class Calculator:
 class EquationValidator:
     def __init__(self):
         self.valid_identifier_pattern = "^[a-zA-Z]+[a-zA-Z]*$"
-        self.valid_expression_pattern = "^[+-]?([0-9]+|[a-zA-Z]+)([ ]*([+-]+|[*/^]?)([ ]*[+-]*)?([0-9]+|[a-zA-Z]+))*$"
+        self.valid_expression_pattern = "^[ +-]*([0-9]+|[a-zA-Z]+)([ ]*([+-]+|[*/^]?)([ ]*[+-]*)?([0-9]+|[a-zA-Z]+))*$"
 
     def process_equation(self, equation):
         """
