@@ -1,6 +1,7 @@
 import argparse
 import os
 import requests
+import colorama
 
 from collections import deque
 from bs4 import BeautifulSoup
@@ -12,6 +13,7 @@ class Browser:
         self.valid_commands = ('back', 'exit')
         self.history = deque()
         self.url_start = 'https://'
+        colorama.init()
         self.start()
 
     def start(self):
@@ -45,8 +47,10 @@ class Browser:
             url = self.url_start + url
         path = self.dir + '\\' + filename[0]
         if os.path.exists(path):
-            with open(path, 'r', encoding='utf-8') as file:
-                print(file.read())
+            with open(path, 'rb') as file:
+               soup = self.colorize(BeautifulSoup(file.read(), 'html.parser'))
+               for string in soup.stripped_strings:
+                print(string)
             return True
         else:
             try:
@@ -54,12 +58,16 @@ class Browser:
             except requests.exceptions.ConnectionError:
                 print('Invalid URL')
                 return False
-            soup = BeautifulSoup(r.content, 'html.parser')
-            text = soup.get_text()
-            print(text)
-            with open(path, 'w', encoding='utf-8') as file:
-                file.write(text)
+            soup = self.colorize(BeautifulSoup(r.content, 'html.parser'))
+            print(soup.get_text())
+            with open(path, 'wb') as file:
+                file.write(r.content)
             return True
+
+    def colorize(self, soup):
+        for i in soup.find_all("a"):
+            i.string = "".join([colorama.Fore.BLUE, i.get_text(), colorama.Fore.RESET])
+        return soup
 
 
 class CommandLine:
