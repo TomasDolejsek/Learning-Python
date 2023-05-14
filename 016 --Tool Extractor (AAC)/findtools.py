@@ -115,6 +115,7 @@ class Extractor:
         :return: None
         """
         tools.data.clear()  # clear tool database before a new search
+        self.counter = 0
         if machine_list[0] == 'ALL':
             machine_list = self.FG_MACHINES
         for machine_id in machine_list:
@@ -150,22 +151,19 @@ class Extractor:
         rown = 5
         max_row = sheet_obj.max_row
         last_tool = ''
-        while rown < max_row + 1:
+        while rown <= max_row:
             rown += 1
             c_value = str(sheet_obj.cell(row=rown, column=self.TOOL_COLUMN).value)
             if (idlist[0] != 'ALL' and c_value in idlist) or \
                (idlist[0] == 'ALL' and self.is_tool(c_value) and c_value != last_tool):
-                self.counter += 1
                 rown, tool_dict = self.get_tool_data(c_value, rown, sheet_obj)
                 if tool_dict:
                     if tool_dict['id'] == 'reference':
-                        self.counter -= 1
                         continue
                     tool_dict['fgmachine'] = fgname
                     if tool_dict not in tools.data.values():
+                        self.counter += 1
                         tools.data[self.counter] = tool_dict
-                    else:
-                        self.counter -= 1
                 last_tool = c_value
         wb_obj.close()
 
@@ -184,7 +182,7 @@ class Extractor:
         project = ''
         form = ''
         prod_type = ''
-        cav = 0
+        cav = '0'
         first_cavity = ''
         last_cavity = ''
         made = 0
