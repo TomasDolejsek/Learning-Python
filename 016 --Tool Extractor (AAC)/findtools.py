@@ -72,7 +72,7 @@ class Extractor:
         self.DATE_COLUMN = 3
         self.TOOL_COLUMN = 6
         # self.PATH_BASE = "Z:\\CZ_Production\\Prod_RW\\Tooling\\T02 FG Machines\\T02.00.202 "
-        self.PATH_BASE = "D:\\Tom\\Texts\\Python\\016 --Tool Extractor (AAC)\\"
+        self.PATH_BASE = "C:\\Tom\\Texts\\Python\\016 --Tool Extractor (AAC)\\"
         self.FG_MACHINES = list(map(lambda x: 'FG' + str(x), [*range(113, 116)]))
         self.counter = 0  # number of unique tool entries
 
