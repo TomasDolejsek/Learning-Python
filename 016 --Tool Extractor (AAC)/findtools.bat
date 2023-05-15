@@ -1,1 +1,1 @@
-python findtools.py
+python -m findtools

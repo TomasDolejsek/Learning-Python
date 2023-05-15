@@ -8,7 +8,7 @@
 <td valign=bottom>&nbsp;<br>
 <font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>findtools</strong></big></big></font></td
 ><td align=right valign=bottom
-><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:c%3A%5Ctom%5Ctexts%5Cpython%5C_hyperskill%5C016%20--tool%20extractor%20%28aac%29%5Cfindtools.py">c:\tom\texts\python\_hyperskill\016 --tool extractor (aac)\findtools.py</a></font></td></tr></table>
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:z%3A%5Ccz_engineering%5C07%20software%5Cfindtools%5Cfindtools.py">z:\cz_engineering\07 software\findtools\findtools.py</a></font></td></tr></table>
     <p></p>
 <p>
 <table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
@@ -95,6 +95,15 @@ Static methods defined here:<br>
 :param&nbsp;tool_id:&nbsp;tool&nbsp;id&nbsp;to&nbsp;validate<br>
 :return:&nbsp;True&nbsp;or&nbsp;False&nbsp;according&nbsp;to&nbsp;the&nbsp;validation</tt></dd></dl>
 
+<dl><dt><a name="Extractor-is_unique"><strong>is_unique</strong></a>(tooldata)</dt><dd><tt>1)&nbsp;Check&nbsp;if&nbsp;current&nbsp;tool&nbsp;hasn't&nbsp;been&nbsp;accessed&nbsp;to&nbsp;the&nbsp;tooldatabase&nbsp;already<br>
+&nbsp;&nbsp;&nbsp;(during&nbsp;seaching&nbsp;of&nbsp;one&nbsp;of&nbsp;the&nbsp;previous&nbsp;runlogs).<br>
+2)&nbsp;If&nbsp;so,&nbsp;check&nbsp;if&nbsp;the&nbsp;data&nbsp;aren't&nbsp;duplicate&nbsp;or&nbsp;obsolete&nbsp;(absolete&nbsp;meaning&nbsp;more&nbsp;cavities<br>
+&nbsp;&nbsp;&nbsp;were&nbsp;made&nbsp;by&nbsp;this&nbsp;tool&nbsp;than&nbsp;the&nbsp;previous&nbsp;runlog&nbsp;said).<br>
+3)&nbsp;Update&nbsp;obsolete&nbsp;data&nbsp;if&nbsp;such&nbsp;are&nbsp;found<br>
+4)&nbsp;Return&nbsp;original&nbsp;tooldata&nbsp;if&nbsp;they&nbsp;are&nbsp;unique&nbsp;or&nbsp;False&nbsp;if&nbsp;the&nbsp;data&nbsp;are&nbsp;duplicated&nbsp;or&nbsp;obsolete.&nbsp;<br>
+:tooldata:&nbsp;dictionary&nbsp;of&nbsp;current&nbsp;tool&nbsp;data<br>
+:return:&nbsp;False&nbsp;or&nbsp;tooldata</tt></dd></dl>
+
 <hr>
 Data descriptors defined here:<br>
 <dl><dt><strong>__dict__</strong></dt>
@@ -116,7 +125,7 @@ Data descriptors defined here:<br>
 <dl><dt><a name="ToolDatabase-save_tools_data"><strong>save_tools_data</strong></a>(self)</dt><dd><tt>1)&nbsp;Determine&nbsp;output&nbsp;filename&nbsp;by&nbsp;analyzing&nbsp;current&nbsp;working&nbsp;folder.<br>
 &nbsp;&nbsp;&nbsp;Create&nbsp;new&nbsp;'findtools_result_X.xlxs',&nbsp;where&nbsp;X&nbsp;is&nbsp;the&nbsp;next&nbsp;number&nbsp;in&nbsp;succession.<br>
 1)&nbsp;Save&nbsp;tool&nbsp;data&nbsp;dictionary&nbsp;to&nbsp;the&nbsp;.xlsx&nbsp;table.<br>
-2)&nbsp;Format&nbsp;the&nbsp;table's&nbsp;style&nbsp;before&nbsp;saving<br>
+2)&nbsp;moldat&nbsp;the&nbsp;table's&nbsp;style&nbsp;before&nbsp;saving<br>
 :return:&nbsp;None</tt></dd></dl>
 
 <hr>

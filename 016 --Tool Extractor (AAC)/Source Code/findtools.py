@@ -15,7 +15,7 @@ class ToolDatabase:
         1) Determine output filename by analyzing current working folder.
            Create new 'findtools_result_X.xlxs', where X is the next number in succession.
         1) Save tool data dictionary to the .xlsx table.
-        2) Format the table's style before saving
+        2) moldat the table's style before saving
         :return: None
         """
         if not self.data:
@@ -36,16 +36,16 @@ class ToolDatabase:
                 except ValueError:
                     pass
         output_name = self.OUTPUT_FOLDER + self.OUTPUT_NAME_BASE + str(maxindex) + '.xlsx'
-        header = ['Tool ID', 'FG Machine', 'Project', 'Form', 'Align/Rough-in',
+        header = ['Tool ID', 'FG Machine', 'Project', 'Mold', 'Align/Rough-in',
                   'Cavities Made', 'Cavities Range', 'Time Range']
         wb = openpyxl.Workbook()
         sheet = wb.active
         sheet.append(header)
         for tool in self.data.values():
-            tool_data = (tool['id'], tool['fgmachine'], tool['project'], tool['form'], tool['prod_type'],
+            tool_data = (tool['id'], tool['fgmachine'], tool['project'], tool['mold'], tool['prod_type'],
                          tool['cavities_made'], tool['cavities_range'], tool['time_range'])
             sheet.append(tool_data)
-        # formatting output table
+        # moldatting output table
         cdim = [0 for _ in range(8)]
         for i in range(1, sheet.max_row + 1):
             for j in range(1, sheet.max_column + 1):
@@ -71,10 +71,10 @@ class Extractor:
         self.INFO_COLUMN = 1
         self.DATE_COLUMN = 3
         self.TOOL_COLUMN = 6
-        # self.PATH_BASE = "Z:\\CZ_Production\\Prod_RW\\Tooling\\T02 FG Machines\\T02.00.202 "
-        self.PATH_BASE = "D:\\Tom\\Texts\\Python\\016 --Tool Extractor (AAC)\\"
-        self.FG_MACHINES = list(map(lambda x: 'FG' + str(x), [*range(113, 116)]))
+        self.PATH_BASE = "Z:\\CZ_Production\\Prod_RW\\Tooling\\T02 FG Machines\\T02.00.202 "
+        self.FG_MACHINES = list(map(lambda x: 'FG' + str(x), [*range(105, 116)]))
         self.counter = 0  # number of unique tool entries
+
 
     @staticmethod
     def get_filenames(folder):
@@ -92,7 +92,8 @@ class Extractor:
                 filepath = folder + filename
                 if os.path.isdir(filepath):
                     directory = filename
-                if os.path.isfile(filepath) and not filename.startswith('~$'):
+                if os.path.isfile(filepath) and not filename.startswith('~$') \
+                   and not filename.endswith('.db'):
                     filelist.append(filepath)
             if not directory:
                 break
@@ -115,6 +116,7 @@ class Extractor:
         :return: None
         """
         tools.data.clear()  # clear tool database before a new search
+        self.counter = 0
         if machine_list[0] == 'ALL':
             machine_list = self.FG_MACHINES
         for machine_id in machine_list:
@@ -150,24 +152,60 @@ class Extractor:
         rown = 5
         max_row = sheet_obj.max_row
         last_tool = ''
-        while rown < max_row + 1:
+        while rown <= max_row:
             rown += 1
             c_value = str(sheet_obj.cell(row=rown, column=self.TOOL_COLUMN).value)
             if (idlist[0] != 'ALL' and c_value in idlist) or \
                (idlist[0] == 'ALL' and self.is_tool(c_value) and c_value != last_tool):
-                self.counter += 1
+                if idlist[0] != 'ALL':
+                    print(Fore.LIGHTGREEN_EX + f"Tool {c_value} has been found in {runlog_name}" + Fore.RESET)
                 rown, tool_dict = self.get_tool_data(c_value, rown, sheet_obj)
                 if tool_dict:
                     if tool_dict['id'] == 'reference':
-                        self.counter -= 1
                         continue
                     tool_dict['fgmachine'] = fgname
-                    if tool_dict not in tools.data.values():
+                    tool_dict = self.is_unique(tool_dict)
+                    if tool_dict:
+                        self.counter += 1
                         tools.data[self.counter] = tool_dict
-                    else:
-                        self.counter -= 1
                 last_tool = c_value
         wb_obj.close()
+
+    @staticmethod
+    def is_unique(tooldata):
+        """
+        1) Check if current tool hasn't been accessed to the tooldatabase already
+           (during seaching of one of the previous runlogs).
+        2) If so, check if the data aren't duplicate or obsolete (absolete meaning more cavities
+           were made by this tool than the previous runlog said).
+        3) Update obsolete data if such are found
+        4) Return original tooldata if they are unique or False if the data are duplicated or obsolete. 
+        :tooldata: dictionary of current tool data
+        :return: False or tooldata
+        """
+        if tooldata in tools.data.values():
+            return False
+        for key, tool in tools.data.items():
+            if tooldata['id'] == tool['id']:
+                if (not tooldata['mold'] and tooldata['prod_type'] == tool['prod_type']) \
+                or (tooldata['mold'] and tooldata['mold'] == tool['mold']):
+                    if tooldata['time_range'][:10] < tool['time_range'][:10] \
+                    or tooldata['time_range'][-10:] > tool['time_range'][-10]:
+                        started = min(tooldata['time_range'][:10], tool['time_range'][:10])
+                        ended = max(tooldata['time_range'][-10:], tool['time_range'][-10])
+                        if tooldata['cavities_range'][:4] > tooldata['cavities_range'][-4:] \
+                        or tool['cavities_range'][:4] > tool['cavities_range'][-4:]:
+                            first_cavity = max(tooldata['cavities_range'][:4], (tool['cavities_range'][:4]))
+                        else:
+                            first_cavity = min(tooldata['cavities_range'][:4], tool['cavities_range'][:4])
+                        last_cavity = max(tooldata['cavities_range'][-4:], tool['cavities_range'][-4:])
+                        cavities = max(int(tooldata['cavities_made']), int(tool['cavities_made']))
+                        tooldata['cavities_made'] = str(cavities)
+                        tooldata['cavities_range'] = ' - '.join((first_cavity, last_cavity))
+                        tooldata['time_range'] = ' -> '.join((started, ended))
+                        tools.data[key] = tooldata
+                        return False
+        return tooldata
 
     def get_tool_data(self, tool_id, start_row, sheet_obj):
         """
@@ -182,9 +220,9 @@ class Extractor:
         """
         tooldata = dict()
         project = ''
-        form = ''
+        mold = ''
         prod_type = ''
-        cav = 0
+        cav = '0'
         first_cavity = ''
         last_cavity = ''
         made = 0
@@ -199,31 +237,35 @@ class Extractor:
             c_info = sheet_obj.cell(row=rown, column=self.INFO_COLUMN).value
             c_date = sheet_obj.cell(row=rown, column=self.DATE_COLUMN).value
             c_tool = str(sheet_obj.cell(row=rown, column=self.TOOL_COLUMN).value)
-            if c_info and ('Ministud' in c_info or 'Idle' in c_info):
-                ministud = True
+            if c_info and ('Ministud' in c_info):
+                if not prod_type:
+                    prod_type = 'Ministud'
+                    started = str(c_date)[:10]
+                    ended = str(c_date)[:10]
             if c_info and ('reference' in c_info):
                 reftool = True
-            if c_info and ('Align' in c_info or 'Rough-in' in c_info):
+            if c_info and ('Align' in c_info or 'Rough-in' in c_info or 'Clean-Up' in c_info):
+                infolist = c_info.split()
+                project = ' '.join(infolist[0:4])
+                if not started:
+                    started = str(c_date)[:10]
+                ended = str(c_date)[:10]
                 if 'Run-in' not in c_info:
-                    infolist = c_info.split()
-                    project = ' '.join(infolist[0:4])
-                    form = infolist[4]
+                    prod_type = infolist[6]
+                    mold = infolist[4]
                     if not first_cavity:
                         first_cavity = infolist[5]
                     last_cavity = infolist[5]
-                    prod_type = infolist[6]
-                    if not started:
-                        started = str(c_date)[:10]
-                    ended = str(c_date)[:10]
+                else:
+                    prod_type = 'Run-in'
+            if c_info and ('IPQC' in c_info):
+                made += 1
             if c_tool and 'Cav.' in c_tool:
                 cav = c_tool[:-14]
-                if not ministud:
-                    made += 1
-                ministud = False
             if (self.is_tool(c_tool) and c_tool != tool_id) or rown == max_row:
                 tooldata['id'] = tool_id
                 tooldata['project'] = project
-                tooldata['form'] = form
+                tooldata['mold'] = mold
                 tooldata['prod_type'] = prod_type
                 tooldata['cavities_made'] = cav if int(cav) > 0 else str(made)
                 tooldata['cavities_range'] = ' - '.join((first_cavity, last_cavity))
@@ -265,7 +307,7 @@ class UserInterface:
         while True:
             print("\nType 'exit' to quit the program.")
             print("Enter tool id (type 'all' to get list of all tools).")
-            print("You can enter multiple tool IDs (use ' ' to separate them): ")
+            print("You can enter multiple tool IDs (separate them using space bar): ")
             tool_id = input().lower().strip()
             if not tool_id:
                 continue
@@ -286,7 +328,7 @@ class UserInterface:
             while True:
                 print("\nType 'back' to change tool ID or 'exit' to quit the program.")
                 print("Enter FG Machine ID [FG105 - FG115] (type 'all' to search all machines).")
-                print("You can enter multiple FG Machine IDs (use ' ' to separate them): ")
+                print("You can enter multiple FG Machine IDs (separate them using space bar): ")
                 machine = input().lower().strip()
                 if not machine:
                     continue
