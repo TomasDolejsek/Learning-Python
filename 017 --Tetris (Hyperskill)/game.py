@@ -5,10 +5,11 @@ class Playfield:
         self.shape = shape
         self.rotation = 0
         self.states = len(self.shape)
+        self.fixed = False
         self.grid = list()
-        self.redesign_piece_grid()
-
-    def redesign_piece_grid(self):
+        self.update_grid()
+        
+    def update_grid(self):
         self.grid.clear()
         line = list()
         element = 0
@@ -23,33 +24,43 @@ class Playfield:
             line.clear()
 
     def rotate(self):
-        self.movedown()
+        if self.fixed:
+            return
         self.rotation += 1
         if self.rotation > self.states - 1:
             self.rotation = 0
-        self.redesign_piece_grid()
+        self.update_grid()
+        self.movedown()
 
     def moveleft(self):
-        self.movedown()
+        if self.fixed:
+            return
         for rot in range(self.states):
             line = list(map(lambda x: x - 1 if (x - 1) % self.columns != self.columns - 1
                             else x + self.columns - 1, self.shape[rot]))
             self.shape[rot] = line
-        self.redesign_piece_grid()
-    
-    def moveright(self):
+        self.update_grid()
         self.movedown()
+
+    def moveright(self):
+        if self.fixed:
+            return
         for rot in range(self.states):
             line = list(map(lambda x: x + 1 if (x + 1) % self.columns != 0
                             else x - self.columns + 1, self.shape[rot]))
             self.shape[rot] = line
-        self.redesign_piece_grid()
-        
+        self.update_grid()
+        self.movedown()
+
     def movedown(self):
+        if self.fixed:
+            return
         for rot in range(self.states):
             line = list(map(lambda x: x + self.columns, self.shape[rot]))
+            if any(list(map(lambda x: True if x >= (self.rows - 1) * self.columns else False, self.shape[self.rotation]))):
+                self.fixed = True
             self.shape[rot] = line
-        self.redesign_piece_grid()
+        self.update_grid()
 
     def display(self):
         for line in self.grid:
