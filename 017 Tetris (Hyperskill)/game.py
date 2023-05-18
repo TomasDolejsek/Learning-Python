@@ -9,6 +9,7 @@ class PlayField:
         self.columns = columns
         self.grid = ['-' * self.columns] * self.rows
         self.fixed_pixels = set()
+        self.broken_line = False
 
     def display(self):
         for line in self.grid:
@@ -17,10 +18,14 @@ class PlayField:
         print()
 
     def update_grid(self, piece):
+        if self.broken_line:
+            return
         if any(el >= (self.rows - 1) * self.columns for el in piece.actual_shape):
-            piece.fixed = True
+            if piece.moves > 0:
+                piece.fixed = True
         if any(el + self.columns in self.fixed_pixels for el in piece.actual_shape):
-            piece.fixed = True
+            if piece.moves > 0:
+                piece.fixed = True
         if piece.fixed:
             self.fixed_pixels.update(piece.actual_shape)
         element = 0
@@ -40,38 +45,36 @@ class PlayField:
         if any(num <= self.columns - 1 for num in self.fixed_pixels):
             raise GameOverException
 
+    def remove_bottom_line(self):
+        bottom_line = self.grid[self.rows - 1]
+        if any(el != 'x' for el in bottom_line):
+            return
+        empty_line = '-' * self.columns
+        self.grid.pop()
+        self.grid.insert(0, empty_line)
+        new_set = set()
+        for el in self.fixed_pixels:
+            if el < (self.rows - 1) * self.columns:
+                new_set.add(el + self.columns)
+        self.fixed_pixels = new_set
+        self.broken_line = True
+        self.remove_bottom_line()
+
 
 class GamePiece:
     def __init__(self, shape, rows, columns):
         self.rows = rows
         self.columns = columns
         self.shape = shape.copy()
+        self.states = len(self.shape)
         self.rotation = 0
+        self.moves = 0
         self.fixed = False
-        self.grid = list()
-        self.update_piece()
-        
+        play_field.broken_line = False
+
     @property
     def actual_shape(self):
         return self.shape[self.rotation]
-    
-    @property
-    def states(self):
-        return len(self.shape)
-    
-    def update_piece(self):
-        self.grid.clear()
-        line = list()
-        element = 0
-        for i in range(self.rows):
-            for j in range(self.columns):
-                if element not in self.actual_shape:
-                    line.append('-')
-                else:
-                    line.append('0')
-                element += 1
-            self.grid.append(line.copy())
-            line.clear()
 
     def rotate(self):
         if self.fixed:
@@ -79,7 +82,6 @@ class GamePiece:
         self.rotation += 1
         if self.rotation > self.states - 1:
             self.rotation = 0
-        self.update_piece()
         self.move_down()
 
     def move_left(self):
@@ -90,9 +92,8 @@ class GamePiece:
             return
         for rot in range(self.states):
             line = [el - 1 if (el - 1) % self.columns != self.columns - 1
-                            else el + self.columns - 1 for el in self.shape[rot]]
+                    else el + self.columns - 1 for el in self.shape[rot]]
             self.shape[rot] = line
-        self.update_piece()
         self.move_down()
 
     def move_right(self):
@@ -105,16 +106,18 @@ class GamePiece:
             line = [el + 1 if (el + 1) % self.columns != 0
                     else el - self.columns + 1 for el in self.shape[rot]]
             self.shape[rot] = line
-        self.update_piece()
         self.move_down()
 
     def move_down(self):
         if self.fixed:
             return
+        if any(el + self.columns in play_field.fixed_pixels for el in self.actual_shape):
+            self.fixed = True
+            return
         for rot in range(self.states):
             line = [x + self.columns for x in self.shape[rot]]
             self.shape[rot] = line
-        self.update_piece()
+        self.moves += 1
 
 
 class Game:
@@ -131,6 +134,7 @@ class Game:
 
     def start(self):
         play_field.display()
+        piece = None
         try:
             while True:
                 user = input().lower().strip()
@@ -157,6 +161,9 @@ class Game:
                     if user == 'down':
                         piece.move_down()
                         play_field.update_grid(piece)
+                        play_field.display()
+                    if user == 'break':
+                        play_field.remove_bottom_line()
                         play_field.display()
                     if user == 'exit':
                         exit()
