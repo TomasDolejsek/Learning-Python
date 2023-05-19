@@ -94,13 +94,11 @@ class GamePiece:
     def rotate(self):
         if self.fixed:
             return
-        for elem in self.actual_shape:
-            if elem % self.columns <= 5:
-                if any((el - 1) % self.columns == self.columns - 1 for el in self.actual_shape):
-                    return
-            else:
-                if any((el + 1) % self.columns == 0 for el in self.actual_shape):
-                    return
+        next_rot = self.rotation + 1 if self.rotation + 1 <= self.states - 1 else 0
+        next_shape = self.shape[next_rot]
+        for el, nextel in zip(self.actual_shape, next_shape):
+            if abs(el % self.columns - nextel % self.columns) > 5:
+                return
         self.rotation += 1
         if self.rotation > self.states - 1:
             self.rotation = 0
