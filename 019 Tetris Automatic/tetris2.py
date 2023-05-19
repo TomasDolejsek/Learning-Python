@@ -1,3 +1,9 @@
+import time
+import random
+import pygame
+from os import system
+
+
 class GameOverException(Exception):
     def __init__(self):
         super().__init__("Game Over!")
@@ -10,8 +16,12 @@ class PlayField:
         self.grid = ['-' * self.columns] * self.rows
         self.fixed_pixels = set()
         self.broken_line = False
+        self.score = 0
 
     def display(self):
+        system('cls')
+        print("Use arrow keys to move, esc to quit the game.")
+        print("Your score:", self.score)
         for line in self.grid:
             line = map(lambda el: '0' if el == 'x' else el, line)
             print(' '.join(line))
@@ -45,20 +55,25 @@ class PlayField:
         if any(num <= self.columns - 1 for num in self.fixed_pixels):
             raise GameOverException
 
-    def remove_bottom_line(self):
-        bottom_line = self.grid[self.rows - 1]
-        if any(el != 'x' for el in bottom_line):
-            return
-        empty_line = '-' * self.columns
-        self.grid.pop()
-        self.grid.insert(0, empty_line)
-        new_set = set()
-        for el in self.fixed_pixels:
-            if el < (self.rows - 1) * self.columns:
-                new_set.add(el + self.columns)
-        self.fixed_pixels = new_set
-        self.broken_line = True
-        self.remove_bottom_line()
+    def remove_line(self):
+        for i in range(len(self.grid)):
+            line = self.grid[i]
+            if any(el != 'x' for el in line):
+                continue
+            empty_line = '-' * self.columns
+            del self.grid[i]
+            self.grid.insert(0, empty_line)
+            new_set = set()
+            for el in self.fixed_pixels:
+                if el < i * self.columns:
+                    new_set.add(el + self.columns)
+                elif el >= (i + 1) * self.columns:
+                    new_set.add(el)
+            self.fixed_pixels = new_set
+            self.broken_line = True
+            self.score += 1
+            self.remove_line()
+            break
 
 
 class GamePiece:
@@ -79,45 +94,57 @@ class GamePiece:
     def rotate(self):
         if self.fixed:
             return
+        for elem in self.actual_shape:
+            if elem % self.columns <= 5:
+                if any((el - 1) % self.columns == self.columns - 1 for el in self.actual_shape):
+                    return
+            else:
+                if any((el + 1) % self.columns == 0 for el in self.actual_shape):
+                    return
         self.rotation += 1
         if self.rotation > self.states - 1:
             self.rotation = 0
-        self.move_down()
+        play_field.update_grid(self)
+        play_field.display()
 
     def move_left(self):
         if self.fixed:
             return
         if any((el - 1) % self.columns == self.columns - 1 for el in self.actual_shape):
-            self.move_down()
             return
         for rot in range(self.states):
             line = [el - 1 if (el - 1) % self.columns != self.columns - 1
                     else el + self.columns - 1 for el in self.shape[rot]]
             self.shape[rot] = line
-        self.move_down()
+        play_field.update_grid(self)
+        play_field.display()
 
     def move_right(self):
         if self.fixed:
             return
         if any((el + 1) % self.columns == 0 for el in self.actual_shape):
-            self.move_down()
             return
         for rot in range(self.states):
             line = [el + 1 if (el + 1) % self.columns != 0
                     else el - self.columns + 1 for el in self.shape[rot]]
             self.shape[rot] = line
-        self.move_down()
+        play_field.update_grid(self)
+        play_field.display()
 
     def move_down(self):
         if self.fixed:
             return
         if any(el + self.columns in play_field.fixed_pixels for el in self.actual_shape):
             self.fixed = True
+            play_field.update_grid(self)
             return
         for rot in range(self.states):
             line = [x + self.columns for x in self.shape[rot]]
             self.shape[rot] = line
         self.moves += 1
+        play_field.update_grid(self)
+        play_field.remove_line()
+        play_field.display()
 
 
 class Game:
@@ -129,50 +156,42 @@ class Game:
                        'L': [[4, 14, 24, 25], [5, 15, 14, 13], [4, 5, 15, 25], [6, 5, 4, 14]],
                        'J': [[5, 15, 25, 24], [15, 5, 4, 3], [5, 4, 14, 24], [4, 14, 15, 16]],
                        'T': [[4, 14, 24, 15], [4, 13, 14, 15], [5, 15, 25, 14], [4, 5, 6, 15]]}
-        self.commands = ('piece', 'rotate', 'left', 'right', 'down', 'break', 'exit')
+        self.TICK = 0.2
         self.start()
 
     def start(self):
-        play_field.display()
+        print("Tetris 2.0 with automatic movement.")
         piece = None
+        pygame.init()
+        pygame.display.set_mode((1, 1))
         try:
             while True:
-                user = input().lower().strip()
-                if user in self.commands:
-                    if user == 'piece':
-                        shape = input().upper().strip()
-                        if shape not in self.SHAPES.keys():
-                            continue
-                        piece = GamePiece(self.SHAPES[shape], int(grid_size[1]), int(grid_size[0]))
-                        play_field.update_grid(piece)
-                        play_field.display()
-                    if user == 'rotate':
-                        piece.rotate()
-                        play_field.update_grid(piece)
-                        play_field.display()
-                    if user == 'left':
-                        piece.move_left()
-                        play_field.update_grid(piece)
-                        play_field.display()
-                    if user == 'right':
-                        piece.move_right()
-                        play_field.update_grid(piece)
-                        play_field.display()
-                    if user == 'down':
-                        piece.move_down()
-                        play_field.update_grid(piece)
-                        play_field.display()
-                    if user == 'break':
-                        play_field.remove_bottom_line()
-                        play_field.display()
-                    if user == 'exit':
-                        exit()
+                events = pygame.event.get()
+                for event in events:
+                    if event.type == pygame.KEYDOWN:
+                        if event.key == pygame.K_UP:
+                            piece.rotate()
+                        if event.key == pygame.K_LEFT:
+                            piece.move_left()
+                        if event.key == pygame.K_RIGHT:
+                            piece.move_right()
+                        if event.key == pygame.K_DOWN:
+                            piece.move_down()
+                        if event.key == pygame.K_ESCAPE:
+                            raise GameOverException
+                if piece is None or piece.fixed:
+                    shape = random.choice(list(self.SHAPES.keys()))
+                    piece = GamePiece(self.SHAPES[shape], int(grid_size[0]), int(grid_size[1]))
+                    play_field.update_grid(piece)
+                    play_field.display()
+                time.sleep(self.TICK)
+                piece.move_down()
         except GameOverException as exc:
             play_field.display()
             print(exc)
 
 
 if __name__ == '__main__':
-    grid_size = input().split()
-    play_field = PlayField(int(grid_size[1]), int(grid_size[0]))
+    grid_size = (20, 10)
+    play_field = PlayField(grid_size[0], grid_size[1])
     Game()
