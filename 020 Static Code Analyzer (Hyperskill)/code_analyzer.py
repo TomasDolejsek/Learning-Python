@@ -5,10 +5,13 @@ import re
 import ast
 
 
-class LinesChecker:
-    def __init__(self, filepath, lines):
+class Analyzer:
+    def __init__(self, filepath, script):
         self.path = filepath
-        self.lines = lines
+        self.tree = ast.parse(script)
+        self.lines = script.splitlines()
+        self.nodes = list()
+        self.startlines = list()
         self.MAX_LENGTH = 79
         self.INDENTATION = 4
         self.MAX_SPACES = 2
@@ -28,43 +31,69 @@ class LinesChecker:
                             'S011': 'Variable should be written in snake_case',
                             'S012': 'The default argument value is mutable'
                             }
+        self.logger = list()
+        self.find_all_nodes(self.tree.body)
         self.check_everything()
 
     def check_everything(self):
-        empty_lines = 0
-        for i in range(len(self.lines)):
-            line = self.lines[i]
-            if not line.strip():
-                empty_lines += 1
-                continue
-            if not self.length_ok(line):
-                self.print_error(i + 1, 'S001')
-            if not self.indentation_ok(line):
-                self.print_error(i + 1, 'S002')
-            if not self.semicolon_ok(line):
-                self.print_error(i + 1, 'S003')
-            if not self.spaces_before_comment_ok(line):
-                self.print_error(i + 1, 'S004')
-            if self.todo_found(line):
-                self.print_error(i + 1, 'S005')
-            if empty_lines > self.MAX_EMPTY_LINES:
-                self.print_error(i + 1, 'S006')
-            empty_lines = 0
-            if not self.declaration_ok(line):
-                self.print_error(i + 1, 'S007')
-            if not self.class_name_ok(line):
-                self.print_error(i + 1, 'S008')
-            if not self.function_name_ok(line):
-                self.print_error(i + 1, 'S009')
-            if not self.argument_name_ok(line):
-                self.print_error(i + 1, 'S010')
-            if not self.variable_name_ok(line):
-                self.print_error(i + 1, 'S011')
-            if not self.default_argument_ok(line):
-                self.print_error(i + 1, 'S012')
+        prevline = 0
+        for i, (node, startline) in enumerate(zip(self.nodes, self.startlines)):
+            if startline - prevline > self.MAX_EMPTY_LINES + 1:
+                self.add_to_logger(startline, 'S006')
+            prevline = startline
+            if i < len(self.startlines) - 1:
+                endline = self.startlines[i + 1] - 1
+            else:
+                endline = len(self.lines)
+            for curline in range(startline, endline + 1):
+                line = self.lines[curline - 1]
+                if not self.length_ok(line):
+                    self.add_to_logger(curline, 'S001')
+                if not self.indentation_ok(line):
+                    self.add_to_logger(curline, 'S002')
+                if not self.semicolon_ok(line):
+                    self.add_to_logger(curline, 'S003')
+                if not self.spaces_before_comment_ok(line):
+                    self.add_to_logger(curline, 'S004')
+                if self.todo_found(line):
+                    self.add_to_logger(curline, 'S005')
+                if not self.declaration_ok(line):
+                    self.add_to_logger(curline, 'S007')
+            if not self.class_name_ok(node):
+                self.add_to_logger(startline, 'S008')
+            if not self.function_name_ok(node):
+                self.add_to_logger(startline, 'S009')
+            if not self.argument_name_ok(node):
+                self.add_to_logger(startline, 'S010')
+            if not self.variable_name_ok(node):
+                self.add_to_logger(startline, 'S011')
+            if not self.default_argument_ok(node):
+                self.add_to_logger(startline, 'S012')
+        self.print_logger()
 
-    def print_error(self, line, code):
-        print(f"{self.path}: Line {line}: {code} - {self.ERROR_TEXTS[code]}.")
+    def add_to_logger(self, line, code):
+        tline = str(line)
+        if line < 100:
+            tline = '0' + tline
+        if line < 10:
+            tline = '0' + tline
+        self.logger.append(f"{self.path}: Line {tline}: {code} - {self.ERROR_TEXTS[code]}.")
+
+    def print_logger(self):
+        self.logger.sort()
+        for line in self.logger:
+            index = line.find('Line ')
+            old_line_text = line[index:index + 8]
+            num = str(int(old_line_text[-3:]))
+            line = line.replace(old_line_text, 'Line ' + num)
+            print(line)
+
+    def find_all_nodes(self, root):
+        for node in root:
+            self.nodes.append(node)
+            self.startlines.append(node.lineno)
+            if isinstance(node, ast.ClassDef) or isinstance(node, ast.FunctionDef):
+                self.find_all_nodes(node.body)
 
     def length_ok(self, line):
         if len(line) > self.MAX_LENGTH:
@@ -118,88 +147,43 @@ class LinesChecker:
                 return False
         return True
 
-    def class_name_ok(self, line):
-        if line.strip() == '@staticmethod':
-            return True
-        try:
-            tree = ast.parse(line.strip())
-            for node in ast.walk(tree):
-                if isinstance(node, ast.ClassDef):
-                    if not re.match(self.CAMEL_CASE_PATTERN, node.name):
-                        return False
-            return True
-        except IndentationError:
-            line = line + '    pass'
-            return self.class_name_ok(line)
+    def class_name_ok(self, node):
+        if isinstance(node, ast.ClassDef):
+            if not re.match(self.CAMEL_CASE_PATTERN, node.name):
+                return False
+        return True
 
-    def function_name_ok(self, line):
-        if line.strip() == '@staticmethod':
-            return True
-        try:
-            tree = ast.parse(line.strip())
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
-                    if not re.match(self.SNAKE_CASE_PATTERN, node.name):
-                        return False
-            return True
-        except IndentationError:
-            line = line + '    pass'
-            return self.function_name_ok(line)
+    def function_name_ok(self, node):
+        if isinstance(node, ast.FunctionDef):
+            if not re.match(self.SNAKE_CASE_PATTERN, node.name):
+                return False
+        return True
 
-    def argument_name_ok(self, line):
-        if line.strip() == '@staticmethod':
-            return True
-        try:
-            tree = ast.parse(line.strip())
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
-                    args = node.args.args
-                    for arg in args:
-                        if not re.match(self.SNAKE_CASE_PATTERN, arg.arg):
-                            return False
-            return True
-        except IndentationError:
-            line = line + '    pass'
-            return self.argument_name_ok(line)
+    def argument_name_ok(self, node):
+        if isinstance(node, ast.FunctionDef):
+            args = node.args.args
+            for arg in args:
+                if not re.match(self.SNAKE_CASE_PATTERN, arg.arg):
+                    return False
+        return True
 
-    def variable_name_ok(self, line):
-        if line.strip() == '@staticmethod':
-            return True
-        try:
-            tree = ast.parse(line.strip())
-            for node in ast.walk(tree):
-                if isinstance(node, ast.Assign):
-                    name = node.targets[0]
-                    if isinstance(name, ast.Attribute):
-                        name = name.attr
-                    else:
-                        name = name.id
-                    if not re.match(self.SNAKE_CASE_PATTERN, name):
-                        return False
-            return True
-        except IndentationError:
-            line = line + '    pass'
-            return self.variable_name_ok(line)
+    def variable_name_ok(self, node):
+        if isinstance(node, ast.Assign):
+            variable = node.targets[0]
+            if not isinstance(variable, ast.Attribute):
+                if not re.match(self.SNAKE_CASE_PATTERN, variable.id):
+                    return False
+        return True
 
-    def default_argument_ok(self, line):
-        if line.strip() == '@staticmethod':
-            return True
-        try:
-            tree = ast.parse(line.strip())
-            for node in ast.walk(tree):
-                if isinstance(node, ast.FunctionDef):
-                    defaults = node.args.defaults
-                    for default in defaults:
-                        if isinstance(default, ast.List):
-                            return False
-                        if isinstance(default, ast.Dict):
-                            return False
-                        if isinstance(default, ast.Set):
-                            return False
-            return True
-        except IndentationError:
-            line = line + '    pass'
-            return self.default_argument_ok(line)
+    def default_argument_ok(self, node):
+        if isinstance(node, ast.FunctionDef):
+            defaults = node.args.defaults
+            for default in defaults:
+                if isinstance(default, ast.List) \
+                 or isinstance(default, ast.Dict) \
+                 or isinstance(default, ast.Set):
+                    return False
+        return True
 
 
 class CommandLine:
@@ -215,7 +199,7 @@ class CommandLine:
         if files:
             for file in files:
                 with open(file, 'r') as f:
-                    LinesChecker(file, f.readlines())
+                    Analyzer(file, f.read())
 
     @staticmethod
     def get_filenames(folder):
