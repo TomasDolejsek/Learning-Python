@@ -31,6 +31,7 @@ class Scraper:
 
     def start(self):
         for i in range(len(self.gold_portfolio)):
+            price = 0
             try:
                 gold = self.gold_portfolio[i]
                 r = requests.get(gold['url'])
