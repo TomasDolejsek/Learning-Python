@@ -1,10 +1,7 @@
 import re
 
-#"^[+-]?([0-9]+|[a-zA-Z]+)([ ]*([+-]+|[*/^]?)([ ]*[+-]*)?([0-9]+|[a-zA-Z]+))*$"
-#"^[+-]?([0-9]+|[a-zA-Z]+)([ ]*([+-]+|[*/^]?)([ ]*[+-^]*)?([0-9]+|[a-zA-Z]+))*$"
+text = '01/13/2999'
+pattern = r'(0[1-9]|1[0-9]|2[0-9]|3[0-1])/(0[1-9]|1[0-2])/[1-2]+\d{3}'
 
-pattern = '^s'
-
-name = "username"
-
-print(re.match(pattern, name) is not None)
+print(re.search(pattern, text) is not None)
+    
