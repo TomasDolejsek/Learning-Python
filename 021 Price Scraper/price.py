@@ -11,10 +11,10 @@ class WrongPageError(Exception):
 
 class Scraper:
     def __init__(self):
-        self.gold_portfolio = ({'amount': 124, 'name': '1/25oz Cesky Lev Gold Coin',
-                                'url': 'https://ceskamincovna.cz/zlata-1-25oz-investicni-mince-cesky-lev-2023-stand-2646-16689-d'},
-                               {'amount': 1, 'name': '1/4oz Cesky Lev Gold Coin',
-                                'url': 'https://ceskamincovna.cz/zlata-1-4oz-investicni-mince-cesky-lev-2023-stand-2646-16680-d'},
+        self.gold_portfolio = ({'id': '76172-610', 'amount': 124, 'name': '1/25oz Cesky Lev Gold Coin',
+                                'url': 'https://ceskamincovna.cz/zlate-investicni-mince-cesky-lev-1753-p/'},
+                               {'id': '76357-610', 'amount': 1, 'name': '1/4oz Cesky Lev Gold Coin',
+                                'url': 'https://ceskamincovna.cz/zlate-investicni-mince-cesky-lev-1753-p/'},
                                {'amount': 3, 'name': '2.5g Argor Heraeus Gold Bar',
                                 'url': 'https://zlataky.cz/2-5g-argor-heraeus-sa-svycarsko-investicni-zlaty-slitek'},
                                {'amount': 1, 'name': '5g Argor Heraeus Gold Bar',
@@ -30,26 +30,37 @@ class Scraper:
         self.start()
 
     def start(self):
-        for i in range(len(self.gold_portfolio)):
-            price = 0
+        i = 0
+        while i < len(self.gold_portfolio):
             try:
-                gold = self.gold_portfolio[i]
-                r = requests.get(gold['url'])
+                r = requests.get(self.gold_portfolio[i]['url'])
                 if r.status_code != 200:
-                    raise WrongPageError(f"The URL: {gold['url']} returned {r.status_code}!")
+                    raise WrongPageError(f"The URL: {self.gold_portfolio[i]['url']} returned {r.status_code}!")
                 soup = BeautifulSoup(r.content, 'html.parser')
                 if i < 2:
                     scripts = soup.find_all('script')
+                    found = False
                     for script in scripts:
                         for line in script:
-                            index = line.find('value')
-                            if index != -1:
-                                price = line[index + 7: index + 12]
+                            index0 = line.find(self.gold_portfolio[0]['id'])
+                            index1 = line.find(self.gold_portfolio[1]['id'])
+                            if index0 != -1 and index1 != -1:
+                                found = True
+                                price = str(line)[index0 + 23: index0 + 28]
                                 price = ''.join([x for x in price if x.isnumeric()])
+                                self.add_to_logger(self.gold_portfolio[0], int(price))
+                                price = str(line)[index1 + 23: index1 + 28]
+                                price = ''.join([x for x in price if x.isnumeric()])
+                                self.add_to_logger(self.gold_portfolio[1], int(price))
+                                break
+                        if found:
+                            i = 2
+                            break
                 else:
                     price = soup.find('span', {'class': 'fs-4 c-gold'}).text
                     price = ''.join([x for x in price if x.isnumeric()])
-                self.add_to_logger(gold, int(price))
+                    self.add_to_logger(self.gold_portfolio[i], int(price))
+                    i += 1
             except WrongPageError as err:
                 print(err)
                 continue
