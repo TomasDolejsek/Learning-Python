@@ -22,7 +22,7 @@ class DataValidator:
     def ftotal(self):
         return sum(self.format_errors.values())
 
-    def check_input(self, data, verbose=False):
+    def check_input(self, data, verbose1=False, verbose2=False):
         for bus in data:
             if not isinstance(bus['bus_id'], int):
                 self.errors['bus_id'] += 1
@@ -42,10 +42,11 @@ class DataValidator:
                 self.errors['a_time'] += 1
             else:
                 self.check_data_format('a_time', bus['a_time'])
-        if verbose:
+        if verbose1:
             print(f"Type and required field validation: {self.total} errors")
             for error_id, error in self.errors.items():
                 print(f"{error_id}: {error}")
+        if verbose2:
             print(f"Format validation: {self.ftotal} errors")
             for err_id, err in self.format_errors.items():
                 print(f"{err_id}: {err}")
@@ -65,7 +66,7 @@ class DataValidator:
 class Bus:
     def __init__(self, bus_id):
         self.id = bus_id
-        self.stops = dict()
+        self.stops = dict()  # stop_id: (a_time, stop_type)
         self.start_stop = None
         self.final_stop = None
 
@@ -79,7 +80,11 @@ class Bus:
 
     @property
     def a_times(self):
-        return list(self.stops.values())
+        return [x[0] for x in list(self.stops.values())]
+
+    @property
+    def on_demand_stops(self):
+        return [stop_id for stop_id, value in self.stops.items() if value[1] == 'O']
 
 
 class EasyRider:
@@ -93,10 +98,10 @@ class EasyRider:
 
     def start(self):
         input_data = json.loads(input())
-        DataValidator().check_input(input_data, verbose=False)
+        DataValidator().check_input(input_data, verbose1=False, verbose2=False)
         self.create_lines_dict(input_data)
-        self.create_stops_info(verbose=False)
-        self.check_a_times(verbose=True)
+        self.create_stops_info(verbose1=False, verbose2=True)
+        self.check_a_times(verbose=False)
 
     def create_lines_dict(self, input_data):
         for data in input_data:
@@ -104,7 +109,7 @@ class EasyRider:
             stopid = data['stop_id']
             if bid not in self.buses.keys():
                 self.buses[bid] = Bus(bid)
-            self.buses[bid].stops[stopid] = data['a_time']
+            self.buses[bid].stops[stopid] = (data['a_time'], data['stop_type'])
             if data['stop_type'] == 'S':
                 self.buses[bid].start_stop = data['stop_id']
             elif data['stop_type'] == 'F':
@@ -112,11 +117,13 @@ class EasyRider:
             if stopid not in self.stops.keys():
                 self.stops[stopid] = data['stop_name']
 
-    def create_stops_info(self, verbose=False):
+    def create_stops_info(self, verbose1=False, verbose2=False):
         lines = list()
+        wrong = list()
         for bus in self.buses.values():
             if not bus.start_stop or not bus.final_stop:
-                print(f"There is no start or end stop for the line {bus.id}")
+                if verbose1:
+                    print(f"There is no start or end stop for the line {bus.id}")
                 exit()
             self.start_stops.add(self.stops[bus.start_stop])
             self.final_stops.add(self.stops[bus.final_stop])
@@ -124,10 +131,22 @@ class EasyRider:
         for line in lines:
             if lines.count(line) > 1:
                 self.transfer_stops.add(self.stops[line])
-        if verbose:
+        if verbose1:
             print(f"Start stops: {len(self.start_stops)} {sorted(self.start_stops)}")
             print(f"Transfer stops: {len(self.transfer_stops)} {sorted(self.transfer_stops)}")
             print(f"Finish stops: {len(self.final_stops)} {sorted(self.final_stops)}")
+        for bus in self.buses.values():
+            for stop in bus.on_demand_stops:
+                stop_name = self.stops[stop]
+                if stop_name in self.start_stops or stop_name in self.transfer_stops \
+                   or stop_name in self.final_stops:
+                    wrong.append(stop_name)
+        if verbose2:
+            print("On demand stops test:")
+            if not wrong:
+                print("OK")
+            else:
+                print(f"Wrong stop type: {sorted(wrong)}")
 
     def check_a_times(self, verbose=False):
         errors = dict()
