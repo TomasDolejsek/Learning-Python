@@ -23,9 +23,9 @@ class UserInterface:
         try:
             if len(knight_pos) != 2:
                 raise ValueError
-            knight_pos = list(map(lambda x: int(x), knight_pos))
+            knight_pos = [int(x) for x in knight_pos]
             for el in knight_pos:
-                if not (1<= el <= 8):
+                if not (1 <= el <= 8):
                     raise ValueError
         except ValueError:
             print("Invalid dimensions!")
