@@ -1,69 +1,79 @@
-class ChessBoardPiece:
-    def __init__(self, pos_x, pos_y, name):
+class ChessPiece:
+    def __init__(self, pos_x, pos_y, mark):
         self.x = pos_x
         self.y = pos_y
-        self.name = name
+        self.mark = mark
 
-class Knight(ChessBoardPiece):
-    def __init__(self, x, y):
-        super().__init__(x, y, 'X')
-        self.possible_moves = list()
-        self.find_possible_moves()
 
-    def find_possible_moves(self):
-        # tuple of deviations from a knight position for L-shape moves (columns, rows)
-        pos_deviations = ((-1, 2), (1, 2), (2, -1), (2, 1), (1, -2), (-1, -2), (-2, 1), (-2, -1))
-        self.possible_moves.clear()
-        for dev in pos_deviations:
-            test_pos = [self.x + dev[0], self.y + dev[1]]
-            if (chess_board.columns >= test_pos[0] >= 1) and (self.rows >= test_pos[1] >= 1):
-                self.possible_moves.append(test_pos)
+class Knight(ChessPiece):
+    def __init__(self, pos):
+        super().__init__(pos[0], pos[1], 'x')
+        self.next_positions = list()
+        self.visited_squares = [[self.x, self.y], ]
+        self.pos_deviations = ((-1, 2), (1, 2), (2, 1), (2, -1),
+                               (1, -2), (-1, -2), (-2, -1), (-2, 1))
+        self.find_next_positions()
+
+    @property
+    def nmoves(self):
+        return len(self.next_positions)
+
+    def find_next_positions(self):
+        self.next_positions.clear()
+        for dev in self.pos_deviations:
+            self.next_positions.append([self.x + dev[0], self.y + dev[1]])
+        
+    def validate_next_positions(self, max_x, max_y):
+        temp_list = list()
+        for pos in self.next_positions:
+            if (1 <= pos[0] <= max_x and 1 <= pos[1] <= max_y) \
+                 and pos not in self.visited_squares:
+                temp_list.append(pos)
+        self.next_positions = temp_list
 
 
 class ChessBoard:
-    def __init__(self, dimension, knight_pos):
-        self.columns = dimension[0]
-        self.rows = dimension[1]
-        self.knight_pos = knight_pos
-        self.possible_moves = list()
-        self.find_possible_moves()
-        self.board = [['0' * self.columns] * self.rows]
+    def __init__(self, dimensions, start_position):
+        self.columns = dimensions[0]
+        self.rows = dimensions[1]
+        self.knight = Knight(start_position)
+        self.knight.validate_next_positions(self.columns, self.rows)
+        self.pieces = [self.knight, ]
+        self.board = [[None for _ in range(self.rows)] for _ in range(self.columns)]
+        self.start()
+
+    def start(self):
+        for pos in self.pieces[0].next_positions:
+            new_knight = Knight(pos)
+            new_knight.validate_next_positions(self.columns, self.rows)
+            new_knight.mark = str(new_knight.nmoves)
+            self.pieces.append(new_knight)
+        self.update_board()
         self.display()
 
     def update_board(self):
-        for i in range(self.rows):
-            line = self.board[i]
-            if self.knight_pos[]
+        for piece in self.pieces:
+            self.board[piece.x - 1][piece.y - 1] = piece.mark
 
     def display(self):
         cell_size = len(str(self.columns * self.rows))
         border_len = self.columns * (cell_size + 1) + 3
-        knight = f"{' ' * (cell_size - 1)}" + 'X'
-        move = f"{' ' * (cell_size - 1)}" + 'O'
         prefix_len = len(str(self.rows))
-        knight_start = (cell_size + 1) * self.knight_pos[0] - len(knight)
-        moves_lines = [x[1] for x in self.possible_moves]
-        moves_columns = [x[0] for x in self.possible_moves]
-        print(self.possible_moves, moves_lines)
-        print(f"{' ' * prefix_len}{'-' * border_len}")
-        for i in reversed(range(1, self.rows + 1)):
-            line = f"{'_' * cell_size} " * self.columns
-            if i in moves_lines:
-                move_start = (cell_size + 1) * moves_columns[i] - len(move)
-                line = self.rewrite_line(line, move_start, move)
-            if i == self.knight_pos[1]:
-                line = self.rewrite_line(line, knight_start, knight)
-            print(f"{' ' * (prefix_len - len(str(i)))}{i}| {line}|")
-        print(f"{' ' * prefix_len}{'-' * border_len}")
+        border = f"{' ' * prefix_len}{'-' * border_len}"
+        print(border)
+        for y in reversed(range(1, self.rows + 1)):
+            line = f"{' ' * (prefix_len - len(str(y)))}{y}| "
+            for x in range(1, self.columns + 1):
+                if not self.board[x - 1][y - 1]:
+                    line += f"{'_' * cell_size} "
+                else:
+                    line += f"{' ' * (cell_size - 1)}{self.board[x - 1][y- 1]} "
+            line += '|'
+            print(line)
+        print(border)
         print(' ' * (prefix_len + 1), end='')
-        for i in range(1, self.columns + 1):
-            print(f"{' ' * (cell_size - len(str(i)) + 1)}{i}", end='')
-
-    def rewrite_line(self, line, pos, char):
-        return line[:pos - 1] + char + line[pos - 1 + len(char):]
-
-
-
+        for x in range(1, self.columns + 1):
+            print(f"{' ' * (cell_size - len(str(x)) + 1)}{x}", end='')
 
 
 class UserInterface:
@@ -85,7 +95,7 @@ class UserInterface:
                 print("Invalid position!")
                 continue
             break
-        ChessBoard(dimen, knight_pos)
+        chessboard = ChessBoard(dimen, knight_pos)
 
     def check_input(self, user, dim_limit=(20, 20)):
         try:
