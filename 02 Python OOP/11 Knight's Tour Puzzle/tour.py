@@ -45,7 +45,9 @@ class ChessBoard:
         self.knight.validate_next_positions(self.columns, self.rows, self.visited_squares)
         self.pieces = [self.knight, ]
         self.board = [[None for _ in range(self.rows)] for _ in range(self.columns)]
+        self.forbidden = dict()
         self.create_adjacents()
+        self.update_board()
 
     @property
     def nvisited(self):
@@ -61,29 +63,34 @@ class ChessBoard:
 
     def create_adjacents(self):
         for pos in self.pieces[0].next_positions:
-            new_knight = Knight(pos)
-            new_knight.validate_next_positions(self.columns, self.rows, self.visited_squares)
-            new_knight.mark = str(new_knight.nmoves)
-            self.pieces.append(new_knight)
-        self.update_board()
-        self.display()
+            temp_knight = Knight(pos)
+            temp_knight.validate_next_positions(self.columns, self.rows, self.visited_squares)
+            temp_knight.mark = str(temp_knight.nmoves)
+            self.pieces.append(temp_knight)
 
-    def move_knight(self, new_pos):
+    def move_knight(self, new_pos, auto=False):
         self.pieces = self.pieces[:1]
         self.visited_squares.append(new_pos)
         self.knight.move(new_pos)
-        self.knight.validate_next_positions(self.columns, self.rows, self.visited_squares)
+        check_list = self.visited_squares
+        if auto and self.nvisited - 1 in self.forbidden.keys():
+            check_list += self.forbidden[self.nvisited - 1]
+        self.knight.validate_next_positions(self.columns, self.rows, check_list)
         self.create_adjacents()
+        self.update_board(auto)
+        if not auto:
+            self.display()
 
     def move_ok(self, where):
         return where in self.knight.next_positions
 
-    def update_board(self):
+    def update_board(self, auto=False):
         self.board = [[None for _ in range(self.rows)] for _ in range(self.columns)]
-        for pos in self.visited_squares:
-            self.board[pos[0] - 1][pos[1] - 1] = '*'
-        for piece in self.pieces:
-            self.board[piece.x - 1][piece.y - 1] = piece.mark
+        for index, pos in enumerate(self.visited_squares):
+            self.board[pos[0] - 1][pos[1] - 1] = str(index + 1) if auto else '*'
+        if not auto:
+            for piece in self.pieces:
+                self.board[piece.x - 1][piece.y - 1] = piece.mark
 
     def display(self):
         cell_size = len(str(self.columns * self.rows))
@@ -97,7 +104,8 @@ class ChessBoard:
                 if not self.board[x - 1][y - 1]:
                     line += f"{'_' * cell_size} "
                 else:
-                    line += f"{' ' * (cell_size - 1)}{self.board[x - 1][y- 1]} "
+                    mark = str(self.board[x - 1][y - 1])
+                    line += f"{' ' * (cell_size - len(mark))}{mark} "
             line += '|'
             print(line)
         print(border)
@@ -105,6 +113,27 @@ class ChessBoard:
         for x in range(1, self.columns + 1):
             print(f"{' ' * (cell_size - len(str(x)) + 1)}{x}", end='')
         print()
+
+    def solve(self):
+        if self.all_visited:
+            print("\nHere's the solution!")
+            self.display()
+            return
+        if not self.more_moves:
+            if not self.nvisited - 2 in self.forbidden.keys():
+                self.forbidden[self.nvisited - 2] = [[self.knight.x, self.knight.y], ]
+            else:
+                self.forbidden[self.nvisited - 2].append([self.knight.x, self.knight.y])
+            if self.nvisited - 1 in self.forbidden.keys():
+                del self.forbidden[self.nvisited - 1]
+            self.visited_squares.pop()
+            next_pos = self.visited_squares.pop()
+        else:
+            adj_list = self.pieces[1:]
+            adj_list.sort(key=lambda x: x.nmoves)
+            next_pos = [adj_list[0].x, adj_list[0].y]
+        self.move_knight(next_pos, auto=True)
+        self.solve()
 
 
 class UserInterface:
@@ -126,16 +155,45 @@ class UserInterface:
                 print("Invalid position!")
                 continue
             break
+        while True:
+            print("Do you want to try the puzzle? (y/n): ", end='')
+            user = input().lower().strip()
+            if user not in ('y', 'n'):
+                print("Invalid input!")
+                continue
+            break
+        if not self.check_solution(dimen):
+            print("No solution exists!")
+            exit()
         chessboard = ChessBoard(dimen, knight_pos)
+        if user == 'y':
+            self.player_plays(chessboard, dimen)
+        else:
+            chessboard.solve()
+
+    def check_solution(self, dimension):
+        """
+        Check if solution exists using Cull and Conrad rules
+        :param dimension: dimension of chess board [x, y]
+        :return: True if solution exists, otherwise False
+        """
+        m = min(dimension)
+        n = max(dimension)
+        if m in (1, 2) or (m == 3 and n in (3, 5, 6)) or (m == 4 and n == 4):
+            return False
+        return True
+
+    def player_plays(self, chessboard, dimen):
+        chessboard.display()
         while chessboard.more_moves:
             while True:
                 print("Enter your next move: ", end='')
                 next_move = self.check_input(input().split(), dimen)
                 if not next_move or not chessboard.move_ok(next_move):
-                    print("Invalid move!")
+                    print("Invalid move! ", end='')
                     continue
                 break
-            chessboard.move_knight(next_move)
+            chessboard.move_knight(next_move, auto=False)
         if chessboard.all_visited:
             print("What a great tour! Congratulations!")
         else:
