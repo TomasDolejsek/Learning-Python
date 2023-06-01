@@ -200,7 +200,7 @@ class UserInterface:
             print("No more possible moves!")
             print(f"Your knight visited {chessboard.nvisited} squares!")
 
-    def check_input(self, user, dim_limit=(20, 20)):
+    def check_input(self, user, dim_limit=(30, 30)):
         try:
             if len(user) != 2:
                 raise ValueError
