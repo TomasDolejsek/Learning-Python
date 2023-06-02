@@ -8,7 +8,8 @@ class SortTool:
         self.data_type = data_type
         if self.data_type == 'long':
             self.numerize_data()
-        self.ntotal = len(self.data)
+        self.length = len(self.data)
+        self.logger = ''
 
     def numerize_data(self):
         numeric_data = list()
@@ -22,24 +23,26 @@ class SortTool:
 
     def sort_it_out(self, sort_how):
         item = 'number' if self.data_type == 'long' else self.data_type
-        print(f"Total {item}s: {self.ntotal}")
+        self.logger += f"Total {item}s: {self.length}\n"
         if sort_how == 'natural':
             self.sort_natural(self.data)
         elif sort_how == 'byCount':
             self.sort_by_count(self.data)
+        return self.logger
 
     def sort_natural(self, data):
         separator = '\n' if self.data_type == 'line' else ' '
-        print("Sorted data:", *sorted(data), sep=separator)
+        self.logger += "Sorted data:" + separator
+        self.logger += separator.join([str(x) for x in sorted(data)])
 
     def sort_by_count(self, data):
         counts = dict()
         for el in sorted(data):
             if el not in counts:
-                counts[el] = [data.count(el), floor(data.count(el) / self.ntotal * 100)]
+                counts[el] = [data.count(el), floor(data.count(el) / self.length * 100)]
         counts = sorted(counts.items(), key=lambda x: x[1])
         for count in counts:
-            print(f"{count[0]}: {count[1][0]} time(s), {count[1][1]}%")
+            self.logger += f"{count[0]}: {count[1][0]} time(s), {count[1][1]}%\n"
 
 
 class UserInterface:
@@ -47,14 +50,19 @@ class UserInterface:
         args = self.get_arguments()
         self.data_type = args.dataType
         self.sorting_type = args.sortingType
+        self.infile = args.inputFile
+        self.outfile = args.outputFile
         self.start()
 
-    def get_arguments(self):
+    @staticmethod
+    def get_arguments():
         parser = argparse.ArgumentParser()
         parser.add_argument('-dataType', choices=['long', 'line', 'word'],
                             required=False, default='word', nargs='?')
         parser.add_argument('-sortingType', choices=['natural', 'byCount'],
                             required=False, default='natural', nargs='?')
+        parser.add_argument('-inputFile', required=False, default=None)
+        parser.add_argument('-outputFile', required=False, default=None)
         args, unknowns = parser.parse_known_args()
         if not args.dataType:
             print("No data type defined!")
@@ -69,13 +77,22 @@ class UserInterface:
     def start(self):
         separator = '\n' if self.data_type == 'line' else None
         data = list()
-        while True:
-            try:
-                data.extend(input().split(separator))
-            except EOFError:
-                break
+        if self.infile:
+            with open(self.infile, 'rt') as file:
+                data = file.read().split(separator)
+        else:
+            while True:
+                try:
+                    data.extend(input().split(separator))
+                except EOFError:
+                    break
         sort_tool = SortTool(data, self.data_type)
-        sort_tool.sort_it_out(self.sorting_type)
+        output_text = sort_tool.sort_it_out(self.sorting_type)
+        if self.outfile:
+            with open(self.outfile, 'wt') as file:
+                file.write(output_text)
+        else:
+            print(output_text)
         
 
 if __name__ == '__main__':
