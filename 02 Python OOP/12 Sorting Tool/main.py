@@ -3,57 +3,58 @@ from math import floor
 
 
 class SortTool:
-    def process_numbers(self, data):
-        print(f"Total numbers: {len(data)}")
-        max_num = max(data)
-        times = data.count(max_num)
-        percent = floor(times / len(data) * 100)
-        print(f"The greatest number: {max_num} ({times} time(s), {percent}%)")
+    def __init__(self, data, data_type):
+        self.data = data
+        self.ntotal = len(self.data)
+        self.data_type = 'number' if data_type == 'long' else data_type
 
-    def process_lines(self, data):
-        print(f"Total words: {len(data)}")
-        max_len = sorted(data, key=len, reverse=True)[0]
-        times = data.count(max_len)
-        percent = floor(times / len(data) * 100)
-        print(f"The longest line:\n{max_len}\n({times} time(s), {percent}%)")
+    def sort_it_out(self, sort_how):
+        print(f"Total {self.data_type}s: {self.ntotal}")
+        data = [int(x) for x in self.data] if self.data_type == 'number' else self.data
+        if sort_how == 'natural':
+            self.sort_natural(data)
+        elif sort_how == 'byCount':
+            self.sort_by_count(data)
 
-    def process_words(self, data):
-        print(f"Total words: {len(data)}")
-        max_len = sorted(data, key=len, reverse=True)[0]
-        times = data.count(max_len)
-        percent = floor(times / len(data) * 100)
-        print(f"The longest word: {max_len} ({times} time(s), {percent}%)")
+    def sort_natural(self, data):
+        data.sort()
+        separator = '\n' if self.data_type == 'line' else ' '
+        print("Sorted data:", *data, sep=separator)
+
+    def sort_by_count(self, data):
+        counts = dict()
+        data.sort()
+        for el in data:
+            if el not in counts:
+                counts[el] = [data.count(el), floor(data.count(el) / self.ntotal * 100)]
+        counts = sorted(counts.items(), key=lambda x: x[1])
+        for count in counts:
+            print(f"{count[0]}: {count[1][0]} time(s), {count[1][1]}%")
 
 
 class UserInterface:
     def __init__(self):
         parser = argparse.ArgumentParser()
-        parser.add_argument('-dataType', choices = ['long', 'line', 'word'])
+        parser.add_argument('-dataType', 
+                            required=False, default='word')
+        parser.add_argument('-sortingType', choices=['natural', 'byCount'],
+                            required=False, default='natural')
         args = parser.parse_args()
-        if not args:
-            self.input_type = 'word'
-        else:
-            self.input_type = args.dataType
-        self.data  = list()
+        self.data_type = args.dataType
+        self.sorting_type = args.sortingType
         self.start()
 
     def start(self):
-        sort_tool = SortTool()
+        separator = '\n' if self.data_type == 'line' else None
+        data = list()
         while True:
             try:
-                if self.input_type == 'line':
-                    self.data.extend(input().splitlines())
-                else:
-                    self.data.extend(input().split())
+                data.extend(input().split(separator))
             except EOFError:
                 break
-        if self.input_type == 'long':
-            sort_tool.process_numbers(self.data)
-        elif self.input_type == 'line':
-            sort_tool.process_lines(self.data)
-        else:
-            sort_tool.process_words(self.data)
-
+        sort_tool = SortTool(data, self.data_type)
+        sort_tool.sort_it_out(self.sorting_type)
+        
 
 if __name__ == '__main__':
     UserInterface()
