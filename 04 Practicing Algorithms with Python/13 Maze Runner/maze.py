@@ -76,7 +76,7 @@ class Maze:
 
     def go_to_next_cell(self, cell):
         self.escape.append(cell)
-        while cell[0] == self.max_x - 1:
+        if cell[0] == self.max_x - 1:
             return
         for key, el in self.adjacency_list.items():
             if cell in el:
@@ -155,6 +155,7 @@ class UserInterface:
                 continue
             if user == '5':
                 maze.find_escape()
+                continue
             if user == '0':
                 print("Bye!")
                 exit()
