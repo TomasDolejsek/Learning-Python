@@ -53,7 +53,7 @@ class Game(UserInterface):
 
     def animate(self):
         if self.delay != 0:
-            for second in range(self.delay + 1):
+            for second in range(self.delay):
                 time.sleep(1)
                 print('.', end='')
         print()
