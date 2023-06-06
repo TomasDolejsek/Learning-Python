@@ -1,14 +1,11 @@
-class Duskers:
+import argparse
+import random
+import time
+
+
+class UserInterface:
     def __init__(self):
-        self.ROBOT = ("           __             ",
-                      "   _(\    [@@]            ",
-                      "  (__/\__ \--/ __         ",
-                      "     \___/----\  \   __   ",
-                      "         \ }{ /\  \_/ _\  ",
-                      "         /\__/\ \__O (__  ",
-                      "        (--/\--)    \__/  ",
-                      "        _)(  )(_          ",
-                      "       `---''---`         ")
+        pass
 
     @staticmethod
     def get_command(options):
@@ -21,6 +18,76 @@ class Duskers:
             break
         return command
 
+
+class Game(UserInterface):
+    def __init__(self, args):
+        super().__init__()
+        self.delay = random.randint(args.min_anim, args.max_anim)
+        random.seed(args.seed)
+        self.possible_locations = args.locations.split(',')
+
+    def explore(self):
+        max_locations = random.randint(1, 9)
+        loc_name = random.choice(self.possible_locations)
+        titanium = random.randint(10, 100)
+        locations = {'1': [loc_name, titanium]}
+        print("Searching", end='')
+        self.animate()
+        while True:
+            nlocations = len(locations)
+            for key, value in locations.items():
+                print(f"[{key}] {value[0]}")
+            print("\n[S] to continue searching")
+            command = self.get_command([*list(locations.keys()), 's', 'back'])
+            if command == 's':
+                if nlocations < max_locations:
+                    loc = random.choice(self.possible_locations)
+                    titanium = random.randint(10, 100)
+                    locations[str(nlocations + 1)] = [loc, titanium]
+                    print("Searching", end='')
+                    self.animate()
+                else:
+                    print("Nothing more in sight.")
+                continue
+            if command == 'back':
+                return 0
+            else:
+                return self.deploy(locations[command])
+
+    def animate(self):
+        if self.delay != 0:
+            for second in range(self.delay + 1):
+                time.sleep(1)
+                print('.', end='')
+        print()
+
+    def deploy(self, location):
+        print("Deploying robots", end='')
+        self.animate()
+        print("Landing", end='')
+        self.animate()
+        print("Exploring", end='')
+        self.animate()
+        print(f"{location[0]} explored successfully, with no damage taken.")
+        print(f"Acquired {location[1]} lumps of titanium.")
+        return location[1]
+
+
+class Hub(UserInterface):
+    def __init__(self, args):
+        super().__init__()
+        self.ROBOT = ("           __             ",
+                      "   _(\    [@@]            ",
+                      "  (__/\__ \--/ __         ",
+                      "     \___/----\  \   __   ",
+                      "         \ }{ /\  \_/ _\  ",
+                      "         /\__/\ \__O (__  ",
+                      "        (--/\--)    \__/  ",
+                      "        _)(  )(_          ",
+                      "       `---''---`         ")
+        self.score = 0
+        self.game = Game(args)
+
     def play(self, name):
         menu = ['[Yes]', '[No]', 'Return to Main[Menu]']
         print(f"\nGreetings, commander {name}!")
@@ -32,6 +99,9 @@ class Duskers:
                 while True:
                     self.display()
                     command = self.get_command(['ex', 'up', 'save', 'm'])
+                    if command == 'ex':
+                        self.score += self.game.explore()
+                        continue
                     if command == 'm':
                         answer = self.game_menu()
                         if answer == 'back':
@@ -60,6 +130,8 @@ class Duskers:
         print(border)
         for line in self.ROBOT:
             print(f"{line}|{line}|{line}")
+        print(border)
+        print(f"| Titanium: {self.score}{' ' * (68 - len(str(self.score)))}|")
         print(border)
         print(*menu, sep='\n')
         print(border)
@@ -95,8 +167,10 @@ class Duskers:
         print("Coming SOON! Thanks for playing!")
         exit()
 
-class MainMenu:
+
+class MainMenu(UserInterface):
     def __init__(self):
+        super().__init__()
         self.LOGO = ("═════════════════════════════════════════════════════════",
                      "██████╗░██╗░░░██╗░██████╗██╗░░██╗███████╗██████╗░░██████╗",
                      "██╔══██╗██║░░░██║██╔════╝██║░██╔╝██╔════╝██╔══██╗██╔════╝",
@@ -106,23 +180,33 @@ class MainMenu:
                      "╚═════╝░░╚═════╝░╚═════╝░╚═╝░░╚═╝╚══════╝╚═╝░░╚═╝╚═════╝░",
                      "             (Survival ASCII Strategy Game)              ")
         self.menu = ('[Play]', '[High] Scores', '[Help]', '[Exit]')
+        self.args = self.get_arguments()
         self.start()
 
+    def get_arguments(self):
+        parser = argparse.ArgumentParser()
+        parser.add_argument('seed', default=0)
+        parser.add_argument('min_anim', type=int, default=0)
+        parser.add_argument('max_anim', type=int, default=0)
+        parser.add_argument('locations', default='')
+        return parser.parse_args()
+
     def start(self):
+        hub = Hub(self.args)
         while True:
             print(*self.LOGO, sep='\n')
             print(*self.menu, sep='\n')
-            command = game.get_command(['play', 'high', 'help', 'exit'])
+            command = self.get_command(['play', 'high', 'help', 'exit'])
             if command == 'play':
                 print("\nEnter your name:")
                 name = input().strip()
-                game.play(name)
+                hub.play(name)
                 continue
             if command == 'high':
-                game.high_score()
+                hub.high_score()
                 continue
             if command == 'help':
-                game.help()
+                hub.help()
                 continue
             if command == 'exit':
                 print("Thanks for playing, bye!")
@@ -130,5 +214,4 @@ class MainMenu:
 
 
 if __name__ == '__main__':
-    game = Duskers()
     MainMenu()
