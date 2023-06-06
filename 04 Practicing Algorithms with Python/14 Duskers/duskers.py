@@ -28,17 +28,10 @@ class Game(UserInterface):
 
     def explore(self):
         max_locations = random.randint(1, 9)
-        loc_name = random.choice(self.possible_locations)
-        titanium = random.randint(10, 100)
-        locations = {'1': [loc_name, titanium]}
-        print("Searching", end='')
-        self.animate()
+        locations = dict()
+        command = 's'
         while True:
             nlocations = len(locations)
-            for key, value in locations.items():
-                print(f"[{key}] {value[0]}")
-            print("\n[S] to continue searching")
-            command = self.get_command([*list(locations.keys()), 's', 'back'])
             if command == 's':
                 if nlocations < max_locations:
                     loc = random.choice(self.possible_locations)
@@ -48,6 +41,10 @@ class Game(UserInterface):
                     self.animate()
                 else:
                     print("Nothing more in sight.")
+                for key, value in locations.items():
+                    print(f"[{key}] {value[0]}")
+                print("\n[S] to continue searching")
+                command = self.get_command([*list(locations.keys()), 's', 'back'])
                 continue
             if command == 'back':
                 return 0
