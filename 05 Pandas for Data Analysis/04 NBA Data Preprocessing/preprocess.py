@@ -1,4 +1,5 @@
 import pandas as pd
+from sklearn.preprocessing import StandardScaler
 
 
 def clean_data(path):
@@ -28,6 +29,35 @@ def feature_data(df):
     return df
 
 
+def multicol_data(df, target='salary'):
+    # 1. create a correlation matrix of all numeric features except target ('salary' by default)
+    pearson = df.select_dtypes('number').drop(target, axis=1).corr()
+
+    # 2. find all features where correlation coefficient is higher than 0.5 (or lower than -0.5)
+    high_corrs = []
+    for column in pearson.columns:
+        for i in range(pearson.shape[0]):
+            if 0.5 < abs(pearson[column][i]) < 1.0:
+                high_corrs.append(column)
+
+    # 3. find correlation coefficients of found high_corrs with the target variable
+    columns = [*high_corrs, target]
+    target_corrs = df[columns].corr()[target].drop(target)
+
+    # 4. drop the feature with the lowest correlation coefficient
+    drop_feature = target_corrs.idxmin()
+    df.drop(drop_feature, axis=1, inplace=True)
+    return df
+
+def transform_data(df):
+    numerical_df = df.select_dtypes('number').drop('salary')
+    categorical_df = df.select_dtypes('categorical')
+
+
+    return X, y
+
+
+
 if __name__ == '__main__':
     DATA_PATH = '../Data/nba2k-full.csv'
 
@@ -37,4 +67,16 @@ if __name__ == '__main__':
 
     # stage 2
     df_featured = feature_data(df_cleaned)
-    print(df_featured[['age', 'experience', 'bmi']].head())
+    # print(df_featured[['age', 'experience', 'bmi']].head())
+
+    # stage 3
+    df_multicolled = multicol_data(df_featured)
+    #print(list(df_multicol.select_dtypes('number').drop(columns='salary')))
+
+    # stage 4
+    X, y = transform_data(df_multicolled)
+    answer = {
+        'shape': [X.shape, y.shape],
+        'features': list(X.columns),
+    }
+    print(answer)
