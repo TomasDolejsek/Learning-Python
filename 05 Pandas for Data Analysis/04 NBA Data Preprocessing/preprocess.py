@@ -1,5 +1,5 @@
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
 
 
 def clean_data(path):
@@ -49,17 +49,33 @@ def multicol_data(df, target='salary'):
     df.drop(drop_feature, axis=1, inplace=True)
     return df
 
-def transform_data(df):
-    numerical_df = df.select_dtypes('number').drop('salary')
-    categorical_df = df.select_dtypes('categorical')
+def transform_data(df, target='salary'):
+    # 1. find numeric features and drop target variable ('salary' by default)
+    numerical_df = df.select_dtypes('number').drop(target, axis=1)
 
+    # 2. scale numerical features
+    scaler = StandardScaler()
+    scaler.fit(numerical_df)
+    numerical = pd.DataFrame(scaler.transform(numerical_df), columns=numerical_df.columns.to_list())
 
-    return X, y
+    # 3. find categorical features
+    categorical_df = df.select_dtypes('object')
 
+    # 4. encode categorical features using OneHotEncoder
+    encoder = OneHotEncoder()
+    encoder.fit(categorical_df)
+    columns = [y for x in encoder.categories_ for y in x]
+    categorical = pd.DataFrame(data=encoder.transform(categorical_df).toarray(), columns=columns)
+
+    # 5. concatenate them together
+    result_df = pd.concat([numerical, categorical], axis=1)
+
+    # 6. return result_df and the target series
+    return result_df, df[target]
 
 
 if __name__ == '__main__':
-    DATA_PATH = '../Data/nba2k-full.csv'
+    DATA_PATH = 'Data/nba2k-full.csv'
 
     # stage 1
     df_cleaned = clean_data(DATA_PATH)
@@ -75,8 +91,6 @@ if __name__ == '__main__':
 
     # stage 4
     X, y = transform_data(df_multicolled)
-    answer = {
-        'shape': [X.shape, y.shape],
-        'features': list(X.columns),
-    }
+    answer = {'shape': [X.shape, y.shape],
+              'features': list(X.columns)}
     print(answer)
