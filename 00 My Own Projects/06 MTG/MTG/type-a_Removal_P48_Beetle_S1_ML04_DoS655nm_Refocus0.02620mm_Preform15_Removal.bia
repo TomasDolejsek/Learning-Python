@@ -1,0 +1,123 @@
+
+*' ---GROUP n°1--- '*
+
+*Param=Removal_Concave*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.0007*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_1.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.0269*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_41.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.0531*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_81.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.0793*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_121.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.1055*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_161.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.1317*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_201.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.1579*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_241.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.1841*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_281.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.2103*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_321.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.2365*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_361.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.2627*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_401.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.2889*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_441.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.3151*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_481.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.3413*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_521.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.3675*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_561.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.3937*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_601.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.4199*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_641.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.4461*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_681.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.4723*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_721.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.4985*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_761.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.5247*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_801.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.5509*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_841.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.5771*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_881.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.6033*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_921.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.6295*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_961.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.6557*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_1001.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.6819*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_1041.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.7081*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_1081.l3d*
+*Xaxis=0*
+*Yaxis=0*
+*Zaxis=-0.7343*
+*po=0,0,0 aw=1 pangle=0 lr=0.1 L:\LaserAblationPrograms\P48_Beetle\MSP15_MK5_S1\Toolpath\FinalToopaths\ML04Preform15\ML04Preform15_DoS655nm_Refocus0.02620mm_Preform15_Removal_0_0_1_1121.l3d*
+
+
+*mo=0,0*
