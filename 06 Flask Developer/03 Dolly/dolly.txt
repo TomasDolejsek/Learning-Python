@@ -1,0 +1,35 @@
+--- Stage 1 ---
+git clone file:///tmp/dolly
+
+--- Stage 2 ---
+cd dolly
+ls
+
+--- Stage 3 ---
+git branch dev-mul
+git checkout dev-mul
+git branch
+
+--- Stage 4 ---
+cat main.py
+
+--- Stage 5 ---
+echo """
+def mul(num1, num2):
+    return num1 * num2
+""" >> main.py
+cat main.py
+git status
+
+--- Stage 6 ---
+git add .
+git commit -m "New function multiplication"
+
+--- Stage 7 ---
+git checkout main
+git merge dev-mul
+git branch -d dev-mul
+
+--- Stage 8 ---
+git diff HEAD~
+git push origin main
