@@ -32,7 +32,7 @@ class Financial(Base):
 class DatabaseProcessor:
     def __init__(self):
         self.DATABASE_NAME = 'investor.db'
-        self.DATA_FILES = ('test/companies.csv', 'test/financial.csv')
+        self.DATA_FILES = ('Data/companies.csv', 'Data/financial.csv')
         engine = create_engine("sqlite:///" + self.DATABASE_NAME, echo=False)
         Session = sessionmaker(bind=engine, autoflush=False)
         self.session = Session()
@@ -57,19 +57,12 @@ class DatabaseProcessor:
                                          cash_equivalents=row[8], liabilities=row[9])
                     self.session.add(item)
         self.session.commit()
-        print("\nDatabase created successfully!")
+        print("Database created successfully!\n")
 
-    def create_company(self):
+    @staticmethod
+    def get_financial_data(ticker):
         data = dict()
-        print("Enter ticker (in the format 'MOON'):")
-        data['ticker'] = input()
-        print("Enter company (in the format 'Moon Corp'):")
-        data['name'] = input()
-        print("Enter industries (in the format 'Technology'):")
-        data['sector'] = input()
-
-        self.session.add(Company(ticker=data['ticker'], name=data['name'], sector=data['sector']))
-
+        data['ticker'] = ticker
         print("Enter ebitda (in the format '987654321'):")
         data['ebitda'] = float(input())
         print("Enter sales (in the format '987654321'):")
@@ -88,24 +81,127 @@ class DatabaseProcessor:
         data['cash_equivalents'] = float(input())
         print("Enter liabilities (in the format '987654321'):")
         data['liabilities'] = float(input())
+        return data
 
-        self.session.add(Financial(ticker=data['ticker'], ebitda=data['ebitda'], sales=data['sales'],
-                                   net_profit=data['net_profit'], market_price=data['market_price'],
-                                   net_debt=data['net_debt'], assets=data['assets'], equity=data['equity'],
-                                   cash_equivalents=data['cash_equivalents'], liabilities=data['liabilities']))
+    def create_company(self):
+        comp_data = dict()
+        print("Enter ticker (in the format 'MOON'):")
+        comp_data['ticker'] = input()
+        print("Enter company (in the format 'Moon Corp'):")
+        comp_data['name'] = input()
+        print("Enter industries (in the format 'Technology'):")
+        comp_data['sector'] = input()
+        self.session.add(Company(ticker=comp_data['ticker'], name=comp_data['name'], sector=comp_data['sector']))
 
+        fin_data = self.get_financial_data(comp_data['ticker'])
+        self.session.add(Financial(ticker=fin_data['ticker'], ebitda=fin_data['ebitda'], sales=fin_data['sales'],
+                                   net_profit=fin_data['net_profit'], market_price=fin_data['market_price'],
+                                   net_debt=fin_data['net_debt'], assets=fin_data['assets'], equity=fin_data['equity'],
+                                   cash_equivalents=fin_data['cash_equivalents'], liabilities=fin_data['liabilities']))
         self.session.commit()
-        print("Company created successfully!")
+        print("Company created successfully!\n")
 
-    def read_company(self):
-        query = self.session.query(Company)
+    def get_company_ids(self):
+        comp_query = self.session.query(Company)
         print("Enter company name:")
         comp_name = input()
-        comp_filter = query.filter(Company.name == comp_name)
+        comp_filter = comp_query.filter(Company.name.ilike(f"%{comp_name}%"))
         if not comp_filter.first():
             print("Company not found!\n")
+            return False
+        ticker_list = []
+        for i, row in enumerate(comp_filter):
+            print(f"{i} {row.name}")
+            ticker_list.append([row.ticker, row.name])
+        print("Enter company number:")
+        number = int(input())
+        return ticker_list[number]
+
+    def read_company(self):
+        ticker_list = self.get_company_ids()
+        if not ticker_list:
             return
-        print(f"{i} {row.name}")
+        results = self.calculate_data(ticker_list[0])
+        print(ticker_list[0], ticker_list[1])
+        for data, value in results.items():
+            print(f"{data} = ", end='')
+            print(f"{round(value, 2)}") if value is not None else print(f"{value}")
+        print()
+
+    def update_company(self):
+        ticker_list = self.get_company_ids()
+        if not ticker_list:
+            return
+        fin_data = self.get_financial_data(ticker_list[0])
+        fin_query = self.session.query(Financial)
+        fin_filter = fin_query.filter(Financial.ticker == fin_data['ticker'])
+        fin_filter.update({
+            'ebitda': fin_data['ebitda'],
+            'sales': fin_data['sales'],
+            'net_profit': fin_data['net_profit'],
+            'market_price': fin_data['market_price'],
+            'net_debt': fin_data['net_debt'],
+            'assets': fin_data['assets'],
+            'equity': fin_data['equity'],
+            'cash_equivalents': fin_data['cash_equivalents'],
+            'liabilities': fin_data['liabilities']
+            })
+        self.session.commit()
+        print("Company updated successfully!\n")
+
+    def delete_company(self):
+        ticker_list = self.get_company_ids()
+        if not ticker_list:
+            return
+        comp_query = self.session.query(Company)
+        fin_query = self.session.query(Financial)
+        comp_query.filter(Company.ticker == ticker_list[0]).delete()
+        fin_query.filter(Financial.ticker == ticker_list[0]).delete()
+        self.session.commit()
+        print("Company deleted successfully!\n")
+
+    def list_companies(self):
+        print("COMPANY LIST")
+        comp_query = self.session.query(Company)
+        for row in sorted(comp_query, key=lambda x: x.ticker):
+            print(f"{row.ticker} {row.name} {row.sector}")
+        print()
+
+    def top_ten(self, list_by):
+        criteria = ['ND/EBITDA', 'ROE', 'ROA']
+        print(f"TICKER {criteria[list_by - 1]}")
+        comp_query = self.session.query(Company)
+        results = []
+        for row in comp_query:
+            results.append([row.ticker, *self.calculate_data(row.ticker).values()])
+        for result in results:
+            if result[list_by + 3] is None:
+                results.remove(result)
+        results.sort(key=lambda x: x[list_by + 3], reverse=True)
+        for i in range(10):
+            print(f"{results[i][0]} {round(results[i][list_by + 3], 2)}")
+        print()
+
+    @staticmethod
+    def get_result(data1, data2):
+        try:
+            result = data1 / data2
+        except TypeError:
+            result = None
+        return result
+
+    def calculate_data(self, ticker):
+        fin_query = self.session.query(Financial)
+        data = fin_query.filter(Financial.ticker == ticker).first()
+        results = dict()
+        results['P/E'] = self.get_result(data.market_price, data.net_profit)
+        results['P/S'] = self.get_result(data.market_price, data.sales)
+        results['P/B'] = self.get_result(data.market_price, data.assets)
+        results['ND/EBITDA'] = self.get_result(data.net_debt, data.ebitda)
+        results['ROE'] = self.get_result(data.net_profit, data.equity)
+        results['ROA'] = self.get_result(data.net_profit, data.assets)
+        results['L/A'] = self.get_result(data.liabilities, data.assets)
+        return results
 
 
 class Menu:
@@ -157,6 +253,12 @@ class CrudMenu(Menu):
             db.create_company()
         elif item == 2:
             db.read_company()
+        elif item == 3:
+            db.update_company()
+        elif item == 4:
+            db.delete_company()
+        elif item == 5:
+            db.list_companies()
         return 0
 
 
@@ -166,11 +268,9 @@ class TopTenMenu(Menu):
 
     @staticmethod
     def process_item(item):
-        if item == 0:
-            return 0
-        else:
-            print("Not implemented!\n")
-            return 0
+        if item in [1, 2, 3]:
+            db.top_ten(item)
+        return 0
 
 
 class InvestCalc:
@@ -179,11 +279,13 @@ class InvestCalc:
 
     @staticmethod
     def start():
+        print("Welcome to the Investor Program!\n")
         menu = MainMenu()
         while True:
             menu.display()
             pick = menu.pick_from_menu()
             if pick == -1:
+                menu = MainMenu()
                 continue
             next_menu = menu.process_item(pick)
             if next_menu == 0:
