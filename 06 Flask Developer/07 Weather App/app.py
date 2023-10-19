@@ -1,6 +1,6 @@
 from sqlalchemy import Column, String, Integer, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
-from flask import Flask, render_template, request, redirect, url_for, flash
+from flask import Flask, render_template, request, redirect, flash
 from os.path import exists
 import sys
 import requests
@@ -33,24 +33,15 @@ class DatabaseProcessor:
 
     def add_city(self, city_name):
         cities = self.get_city_names()
-        if city_name in cities:
+        if city_name.upper() in cities:
             return False
-        self.session.add(City(id=len(cities) + 1, name=city_name))
+        self.session.add(City(id=len(cities) + 1, name=city_name.upper()))
         self.session.commit()
         return True
 
 
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/')
 def index():
-    if request.method == 'POST':
-        name = request.form['city_name']
-        check = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={name}&units=metric&appid=6e52c2b3e1a361f99484e92425c61b3f").json()
-        if check['cod'] != 200:
-            flash("City not found!")
-            return redirect(url_for('index'))
-        if not db.add_city(name):
-            flash("City already exists!")
-            return redirect(url_for('index'))
     cities = []
     for city in db.get_city_names():
         city_dict = dict()
@@ -60,6 +51,17 @@ def index():
         city_dict['weather_state'] = city_json['weather'][0]['main']
         cities.append(city_dict)
     return render_template('index.html', weathers=cities)
+
+
+@app.route('/add', methods=['POST'])
+def add_city():
+    city = request.form['city_name']
+    check = requests.get(f"https://api.openweathermap.org/data/2.5/weather?q={city}&units=metric&appid=6e52c2b3e1a361f99484e92425c61b3f").json()
+    if check['cod'] != 200:
+        flash("The city doesn't exist!")
+    elif not db.add_city(city):
+        flash("The city has already been added to the list!")
+    return redirect('/')
 
 
 # don't change the following way to run flask:
