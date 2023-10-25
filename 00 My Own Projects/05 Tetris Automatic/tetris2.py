@@ -1,4 +1,3 @@
-import pandas
 import time
 import random
 import pygame
