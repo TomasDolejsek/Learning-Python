@@ -1,15 +1,19 @@
 """
-Workshop_01 - Program_03
+Workshop_01 - Program_04
 ----------------------
 Number Guessing Game 2
 ----------------------
 (c) Tomas Dolejsek 2024-01-15
 
-The user should think of a number between 1 and 1000, and the computer should guess it. The computer
-will do it in no more than 10 moves (provided that the player is not cheating).
+Implement a reverse number guessing game in a web application using the Flask framework.
+The user is given a form with three buttons: Too small, Too big, You win.
 
-The player's task will be to give appropriate answers: "Too small", "Too big", "You win".
+Store information about the current variables min and max in hidden form fields (field of the hidden type).
 """
+
+from flask import Flask
+
+app = Flask(__name__)
 
 
 def player_input():
@@ -23,6 +27,7 @@ def player_input():
         return player
 
 
+@app.route("/")
 def main():
     limit = 1000
     print(f"Think about a number from 0 to {limit} and let me guess it!")
@@ -43,4 +48,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    app.run()
