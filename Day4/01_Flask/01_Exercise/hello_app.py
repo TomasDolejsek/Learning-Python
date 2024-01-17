@@ -12,7 +12,7 @@ app = Flask(__name__)
 
 @app.route("/hello/<name>")
 @app.route("/")
-def hello(name='user'):
+def index(name='user'):
     return f"Hello {name}!"
 
 

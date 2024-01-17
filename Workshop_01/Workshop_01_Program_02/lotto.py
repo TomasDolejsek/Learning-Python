@@ -19,7 +19,7 @@ Write a program that:
 4. informs the player how many numbers they have matched.
 """
 
-from random import randint
+from random import shuffle
 
 
 class InvalidNumberError(Exception):
@@ -47,14 +47,9 @@ def get_numbers():
 
 
 def lotto_picks():
-    n = 0
-    numbers = []
-    while n < 6:
-        number = randint(1, 49)
-        if number not in numbers:
-            numbers.append(number)
-            n += 1
-    return numbers
+    numbers = list(range(1, 50))
+    shuffle(numbers)
+    return numbers[:6]
 
 
 def main():
