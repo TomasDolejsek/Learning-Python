@@ -17,41 +17,43 @@ app = Flask(__name__)
 
 
 class OutOfRangeError(Exception):
-    def __init__(self, message):
-        super().__init__(message)
+    def __init__(self):
+        super().__init__()
 
 
-def get_number():
+def get_result(num):
     while True:
         try:
-            num = int(input("Guess a number (1 - 100): "))
+            num = int(num)
             if not (1 <= num <= 100):
                 raise OutOfRangeError
-            return num
+            return validate_number(num)
         except ValueError:
             return "That's not a number!"
         except OutOfRangeError:
             return "The number is out of range!"
 
 
-def main():
-    picked_number = randint(1, 100)
-    while True:
-        number = get_number()
-        if number < picked_number:
-            print("To small!")
-        elif number > picked_number:
-            print("To big!")
-        elif number == picked_number:
-            print("You win!")
-            break
+def validate_number(number):
+    if number < picked_number:
+        return "To small!"
+    elif number > picked_number:
+        return "To big!"
+    elif number == picked_number:
+        return "You win!"
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    global picked_number
     if request.method == 'GET':
-        return render_template('index.html')
+        picked_number = randint(1, 100)
+        return render_template('index.html', display=None)
+    if request.method == 'POST':
+        guess = request.form['number']
+        return render_template('index.html', display=[guess, get_result(guess)])
 
 
 if __name__ == '__main__':
+    picked_number = 0
     app.run()

@@ -13,14 +13,14 @@ app = Flask(__name__)
 
 def calculate(n1, n2, op):
     try:
-        n1, n2 = int(n1), int(n2)
-        if op == 'plus':
+        n1, n2 = float(n1), float(n2)
+        if op == '+':
             return n1 + n2
-        if op == 'minus':
+        if op == '-':
             return n1 - n2
-        if op == 'times':
+        if op == '*':
             return n1 * n2
-        if op == 'division':
+        if op == '/':
             return n1 / n2
     except ZeroDivisionError:
         return "Division by zero!"
@@ -31,12 +31,13 @@ def calculate(n1, n2, op):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'GET':
-        return render_template('index.html')
+        return render_template('index.html', display=None)
     if request.method == 'POST':
         number1 = request.form['n1']
         number2 = request.form['n2']
         op = request.form['operation']
-        return render_template('result.html', variable=calculate(number1, number2, op))
+        output = [number1, number2, op, calculate(number1, number2, op)]
+        return render_template('index.html', display=output)
 
 
 if __name__ == '__main__':

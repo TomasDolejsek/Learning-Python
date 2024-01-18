@@ -2,21 +2,24 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Calculator</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>The Guessing Game</title>
 </head>
 <body>
     <h1>The Guessing Game</h1>
     <p>Try to guess a number between 0 - 100.</p>
-    <form action="/" method='POST'>
+    <form action='/' method='POST'>
         <input type='text' placeholder='Number' name='number'>
-        <br>
-        <button type='submit'>That's my guess</button>
+        <button type='submit'>Guess!</button>
     </form>
-    <div class="result">
-        if {{
-
+    <div>
+        {% if display %}
+            <h1>You picked {{ display[0] }}. {{ display[1] }}</h1>
+            {% if display[1] == "You win!" %}
+                <form action='/' method='GET'>
+                    <button type='submit'>New game</button>
+                </form>
+            {% endif %}
+        {% endif %}
     </div>
-
 </body>
 </html>
