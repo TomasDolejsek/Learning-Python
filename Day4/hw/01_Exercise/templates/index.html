@@ -1,0 +1,58 @@
+<!DOCTYPE html>`
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Natural Number Table</title>
+    <style>
+        table, th, td {
+            border: 2px solid black;
+            border-collapse: collapse;
+            padding: 0 5px;
+        }
+        th {
+            background-color: #96D4D4;
+        }
+        td {
+            border: 1px solid black;
+        }
+    </style>
+</head>
+<body>
+    <form action="/" method="POST">
+        <input type="text" placeholder="Natural number" name="number">
+        <button type="submit">Submit</button>
+    </form>
+    {% if results %}
+        <form action="/" method="GET">
+            <br>
+            {% if results == "Invalid input!" %}
+                <h1>{{ results }}</h1>
+            {% else %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th colspan="2">Results for n = {{ results[3] }}</th>
+                        <tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2 to power of n</td>
+                            <td>{{ results[0] }}</td>
+                        </tr>
+                        <tr>
+                            <td>n to power of n</td>
+                            <td>{{ results[1] }}</td>
+                        </tr>
+                        <tr>
+                            <td>n factorial</td>
+                            <td>{{ results[2] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <br>
+            {% endif %}
+            <button type="submit">Clear</button>
+        </form>
+    {% endif %}
+</body>
+</html>

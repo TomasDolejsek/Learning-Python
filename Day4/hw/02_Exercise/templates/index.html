@@ -1,0 +1,19 @@
+<!DOCTYPE html>`
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Check 10-ISBN</title>
+</head>
+<body>
+    <form action="/" method="POST">
+        <input type="text" placeholder="Enter ISBN-10" name="isbn">
+        <button type="submit">Submit</button>
+    </form>
+    {% if display %}
+        {{ display }}
+        <form action="/" method="GET">
+            <button type="submit">Clear</button>
+        </form>
+    {% endif %}
+</body>
+</html>

@@ -31,7 +31,7 @@ def main():
     while True:
         guess = (high - low) // 2 + low
         attempts += 1
-        print(f"Attempt no. {attempts}, guessing {guess}. How did I do?")
+        print(f"Attempt no. {attempts}, guessing {guess}.")
         answer = player_input()
         if answer == 'too big':
             high = guess
