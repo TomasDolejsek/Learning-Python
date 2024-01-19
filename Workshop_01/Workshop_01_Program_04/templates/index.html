@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>The Inverse Guessing Game</title>
+</head>
+<body>
+    <h1>The Inverse Guessing Game</h1>
+    {% if not display %}
+        <form action="/" method="POST">
+            <button type="submit">START A NEW GAME</button>
+        </form>
+    {% else %}
+        <h1>My guess is {{ display }}</h1>
+        <form action="/" method="POST">
+            <input type="submit" name="user_clicked" value="Too small!">
+            <input type="submit" name="user_clicked" value="Too big!">
+            <input type="submit" name="user_clicked" value="You win!">
+        </form>
+    {% endif %}
+</body>
+</html>
