@@ -10,6 +10,11 @@
         <form action="/" method="POST">
             <button type="submit">START A NEW GAME</button>
         </form>
+    {% elif display == 'won' %}
+        <h1>Yeah, I WON!</h1>
+        <form action="/" method="POST">
+            <button type="submit">START A NEW GAME</button>
+        </form>
     {% else %}
         <h1>My guess is {{ display }}</h1>
         <form action="/" method="POST">

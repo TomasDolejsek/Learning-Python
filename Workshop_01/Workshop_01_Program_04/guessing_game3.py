@@ -15,30 +15,35 @@ from flask import Flask, request, render_template
 app = Flask(__name__)
 
 
-def evaluate_reply(answer, guess):
-    global min, max
-    if answer == 'too big':
-        max = guess
-    elif answer == 'too small':
-        min = guess
-    elif answer == 'you win':
-        won = True
-    return high, low
+def evaluate_reply(answer):
+    global low, high
+    if answer == 'Too small!':
+        low = guess
+    elif answer == 'Too big!':
+        high = guess
+    return answer == 'You win!'
+
+
+def reset_game():
+    global low, high
+    low, high = 1, 1000
 
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
     global guess
-    print(request.method)
     if request.method == 'GET':
         return render_template('index.html', display=None)
     if request.method == 'POST':
         answer = request.form.get('user_clicked')
-        print(value)
+        won = evaluate_reply(answer)
+        if won:
+            reset_game()
+        guess = (high - low) // 2 + low if not won else 'won'
         return render_template('index.html', display=guess)
 
 
 if __name__ == '__main__':
     low, high = 1, 1000
-    guess = (max - min) // 2 + min
+    guess = (high - low) // 2 + low
     app.run()
