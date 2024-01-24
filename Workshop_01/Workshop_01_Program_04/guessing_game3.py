@@ -12,38 +12,40 @@ Store information about the current variables min and max in hidden form fields 
 """
 
 from flask import Flask, request, render_template
+from collections import namedtuple
 app = Flask(__name__)
+Guess = namedtuple('GuessData', ['answer', 'guess', 'min', 'max'])
 
 
-def evaluate_reply(answer):
-    global low, high
-    if answer == 'Too small!':
-        low = guess
-    elif answer == 'Too big!':
-        high = guess
-    return answer == 'You win!'
-
-
-def reset_game():
-    global low, high
-    low, high = 1, 1000
+def evaluate_reply(data):
+    low = data.min
+    high = data.max
+    if data.answer == 'Too small!':
+        low = data.guess
+    elif data.answer == 'Too big!':
+        high = data.guess
+    new_guess = (high - low) // 2 + low
+    if data.answer == 'You win!':
+        new_guess = 'win'
+    return Guess(data.answer, new_guess, low, high)
 
 
 @app.route("/", methods=['GET', 'POST'])
 def index():
-    global guess
     if request.method == 'GET':
-        return render_template('index.html', display=None)
+        return render_template('index.html', guess=500, min=1, max=1000)
     if request.method == 'POST':
         answer = request.form.get('user_clicked')
-        won = evaluate_reply(answer)
-        if won:
-            reset_game()
-        guess = (high - low) // 2 + low if not won else 'won'
-        return render_template('index.html', display=guess)
+        low = int(request.form.get('min'))
+        high = int(request.form.get('max'))
+        guess = int(request.form.get('guess'))
+        data = Guess(answer, guess, low, high)
+        new_data = evaluate_reply(data)
+        if new_data.guess == 'win':
+            return render_template('win.html', guess=500, min=1, max=1000)
+        else:
+            return render_template('game.html', guess=new_data.guess, min=new_data.min, max=new_data.max)
 
 
 if __name__ == '__main__':
-    low, high = 1, 1000
-    guess = (high - low) // 2 + low
     app.run()

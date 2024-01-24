@@ -21,20 +21,20 @@ class OutOfRangeError(Exception):
         super().__init__()
 
 
-def get_result(num):
+def get_result(num, picked):
     while True:
         try:
             num = int(num)
             if not (1 <= num <= 100):
                 raise OutOfRangeError
-            return validate_number(num)
+            return validate_number(num, picked)
         except ValueError:
             return "That's not a number!"
         except OutOfRangeError:
             return "The number is out of range!"
 
 
-def validate_number(number):
+def validate_number(number, picked_number):
     if number < picked_number:
         return "To small!"
     elif number > picked_number:
@@ -45,15 +45,15 @@ def validate_number(number):
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-    global picked_number
     if request.method == 'GET':
         picked_number = randint(1, 100)
-        return render_template('index.html', display=None)
+        return render_template('index.html', secret_number=picked_number, result=None)
     if request.method == 'POST':
         guess = request.form['number']
-        return render_template('index.html', display=[guess, get_result(guess)])
+        picked_number = int(request.form['secret_number'])
+        result = get_result(guess, picked_number)
+        return render_template('index.html', number=guess, secret_number=picked_number, result=result)
 
 
 if __name__ == '__main__':
-    picked_number = 0
     app.run()

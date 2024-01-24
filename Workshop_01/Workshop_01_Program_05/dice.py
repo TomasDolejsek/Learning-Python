@@ -36,32 +36,32 @@ Types of dice used in games: D3, D4, D6, D8, D10, D12, D20, D100.
 
 from random import randint
 from collections import namedtuple
-DiceRoll = namedtuple('DiceRoll', ['amount', 'dice', 'modifier'])
+DiceRoll = namedtuple('DiceRoll', ['number', 'dice', 'modifier'])
 
 
 def process_input(user):
-    correct_dices = (3, 4, 6, 8, 10, 12, 20, 100)
-
-    if 'D' not in user:
+    correct_dice = (3, 4, 6, 8, 10, 12, 20, 100)
+    signs = ('+', '-')
+    d_index = user.find('D')
+    if d_index == -1:
         return False
+
+    for sign in signs:
+        mod_index = user.find(sign)
+        if mod_index != -1:
+            break
+    if mod_index == -1:  # no modifier
+        mod_index = len(user)
+
+    rolls = user[:d_index]  # everything before 'D' means number of rolls
+    dice = user[d_index + 1:mod_index]  # type of dice
+    modifier = user[mod_index:]
     try:
-        d_split = user.split('D')
-        rolls = int(d_split[0]) if d_split[0] else 1
-
-        if '+' in d_split[-1]:
-            mod_split = d_split[-1].split('+')
-            modifier = int(mod_split[-1])
-        elif '-' in d_split[-1]:
-            mod_split = d_split[-1].split('-')
-            modifier = -int(mod_split[-1])
-        else:
-            mod_split = d_split[-1]
-            modifier = 0
-
-        dice = int(mod_split[0])
-        if dice not in correct_dices:
+        rolls = int(rolls) if rolls else 1
+        dice = int(dice)
+        modifier = int(modifier) if modifier else 0
+        if dice not in correct_dice:
             return False
-
     except ValueError:
         return False
 
@@ -69,12 +69,12 @@ def process_input(user):
 
 
 def calculate_roll(roll):
-    suma = 0
-    for _ in range(roll.amount):
+    suma = roll.modifier
+    print("Rolls: ", end='')
+    for _ in range(roll.number):
         x = randint(1, roll.dice)
-        print(x)
+        print(f"{x} ", end='')
         suma += x
-    suma += roll.modifier
     return suma
 
 
@@ -85,7 +85,8 @@ def main():
         roll = process_input(user)
         if not roll:
             print("Incorrect input!")
-    print(f"The result of a {user} dice roll is: {calculate_roll(roll)}")
+    print(f"\nThe result of a {user} dice roll is: {calculate_roll(roll)}")
+
 
 if __name__ == '__main__':
     main()
