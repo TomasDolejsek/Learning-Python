@@ -22,20 +22,21 @@ If the remainder is 0, then the control digit is also 0.
 
 
 def validate_isbn(isbn):
+    pure_isbn = [x for x in isbn if x !='-']
+    if len(pure_isbn) != 13:
+        return False
     suma = 0
     odd = True
-    for n in isbn[:-1]:
-        try:
+    try:
+        for n in pure_isbn[:-1]:
             suma += int(n) if odd else int(n) * 3
-            odd = not odd
-        except ValueError:
-            continue
-    cn = 10 - suma % 10
-    if cn == 10:
-        cn = 0
-    return cn == int(isbn[-1])
+            odd = not odd   
+        cn = (10 - suma % 10) % 10
+        return cn == int(pure_isbn[-1])
+    except ValueError:
+        return False
 
 
 if __name__ == '__main__':
-    print(validate_isbn('9780306406157'))
-    print(validate_isbn('978-3-16-148410-0'))
+    print(validate_isbn('978-80-7080-637-1'))
+    print(validate_isbn('978-0-545-01022-1'))

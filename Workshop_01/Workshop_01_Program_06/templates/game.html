@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>2001 Game</title>
+</head>
+<body>
+    <h1>Round no. {{ round }}</h1>
+    <h2>Current scores: Player: {{ player }} Computer: {{ computer }}</h2>
+    <h3>Select two dice you want to use in this round:</h3>
+    <form action="/" method="POST">
+        <input type="hidden" name="round" value="{{round}}">
+        <input type="hidden" name="player_score" value="{{player}}">
+        <input type="hidden" name="computer_score" value="{{computer}}">
+        <input type="hidden" name="winner" value="{{winner}}">
+        <h3>Dice 1:</h3>
+        <input type="radio" name="dice1" value="3">
+        D3
+        <input type="radio" name="dice1" value="4">
+        D4
+        <input type="radio" name="dice1" value="6" checked>
+        D6
+        <input type="radio" name="dice1" value="8">
+        D8
+        <input type="radio" name="dice1" value="10">
+        D10
+        <input type="radio" name="dice1" value="20">
+        D20
+        <input type="radio" name="dice1" value="100">
+        D100
+        <h3>Dice 2:</h3>
+        <input type="radio" name="dice2" value="3">
+        D3
+        <input type="radio" name="dice2" value="4">
+        D4
+        <input type="radio" name="dice2" value="6" checked>
+        D6
+        <input type="radio" name="dice2" value="8">
+        D8
+        <input type="radio" name="dice2" value="10">
+        D10
+        <input type="radio" name="dice2" value="20">
+        D20
+        <input type="radio" name="dice2" value="100">
+        D100
+        <br><br>
+         {% if winner %}
+            <h1>{{ winner }} WINS!</h1>
+        {% endif %}
+        <button type="submit">SUBMIT</button>
+    </form>
+
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for message in messages %}
+                <h3>{{ message }}</h3>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+</body>
+</html>
