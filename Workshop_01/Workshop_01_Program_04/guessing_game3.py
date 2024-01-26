@@ -3,7 +3,7 @@ Workshop_01 - Program_04
 ----------------------
 Number Guessing Game 3
 ----------------------
-(c) Tomas Dolejsek 2024-01-15
+(c) Tomas Dolejsek 2024-01-28
 
 Implement a reverse number guessing game in a web application using the Flask framework.
 The user is given a form with three buttons: Too small, Too big, You win.

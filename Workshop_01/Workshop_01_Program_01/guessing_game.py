@@ -3,7 +3,7 @@ Workshop_01 - Program_01
 --------------------
 Number Guessing Game
 --------------------
-(c) Tomas Dolejsek 2024-01-15
+(c) Tomas Dolejsek 2024-01-28
 
 Write a simple number guessing game. The computer must draw a number in the range 1 – 100. Then it should:
 

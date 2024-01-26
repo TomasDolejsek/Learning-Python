@@ -5,14 +5,14 @@
     <title>2001 Game</title>
 </head>
 <body>
-    <h1>Round no. {{ round }}</h1>
-    <h2>Current scores: Player: {{ player }} Computer: {{ computer }}</h2>
+    <h1>Round no. {{ results.round }}</h1>
+    <h2>Current scores: Player: {{ results.player }} Computer: {{ results.computer }}</h2>
     <h3>Select two dice you want to use in this round:</h3>
     <form action="/" method="POST">
-        <input type="hidden" name="round" value="{{round}}">
-        <input type="hidden" name="player_score" value="{{player}}">
-        <input type="hidden" name="computer_score" value="{{computer}}">
-        <input type="hidden" name="winner" value="{{winner}}">
+        <input type="hidden" name="round" value="{{results.round}}">
+        <input type="hidden" name="player_score" value="{{results.player}}">
+        <input type="hidden" name="computer_score" value="{{results.computer}}">
+        <input type="hidden" name="winner" value="{{results.winner}}">
         <h3>Dice 1:</h3>
         <input type="radio" name="dice1" value="3">
         D3
@@ -44,8 +44,8 @@
         <input type="radio" name="dice2" value="100">
         D100
         <br><br>
-         {% if winner %}
-            <h1>{{ winner }} WINS!</h1>
+         {% if results.winner %}
+            <h1>{{ results.winner }} WINS!</h1>
         {% endif %}
         <button type="submit">SUBMIT</button>
     </form>

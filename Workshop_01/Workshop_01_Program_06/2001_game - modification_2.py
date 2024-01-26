@@ -3,7 +3,7 @@ Workshop_01 - Program_05_Mod_2
 --------------------------
 2001 Game - Modification_2
 --------------------------
-(c) Tomas Dolejsek 2024-01-25
+(c) Tomas Dolejsek 2024-01-28
 
 *** Modification 2 ***
 Now try transferring your game to the server using Flask. To store information between turns, use hidden form fields.
@@ -14,9 +14,10 @@ the roll should be done using a form.
 from random import randint, choice
 from flask import Flask, render_template, request, flash, session
 from collections import namedtuple
+
 app = Flask(__name__)
-RoundResult = namedtuple('RoundResult', ['round', 'player', 'computer', 'winner'])
 app.secret_key = "Very secret key"
+RoundResult = namedtuple('RoundResult', ['round', 'player', 'computer', 'winner'])
 
 
 def calculate_roll(who, rolls):
@@ -63,7 +64,8 @@ def play_round(round_number, score, rolls):
 def index():
     rolls, score = dict(), dict()
     if request.method == 'GET':
-        return render_template('index.html', round=0, player=0, computer=0, winner=None)
+        result = RoundResult(round=0, player=0, computer=0, winner=None)
+        return render_template('index.html', results=result)
     if request.method == 'POST':
         round_number = int(request.form.get('round')) + 1  # new round
         winner = request.form.get('winner')
@@ -79,8 +81,7 @@ def index():
             result = RoundResult(round=1, player=0, computer=0, winner=None)
         if result.winner:
             session['_flashes'].clear()  # clear flashes
-        return render_template('game.html', winner=result.winner, round=result.round, player=result.player,
-                               computer=result.computer)
+        return render_template('game.html', results=result)
 
 
 if __name__ == '__main__':

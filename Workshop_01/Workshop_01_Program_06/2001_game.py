@@ -3,7 +3,7 @@ Workshop_01 - Program_05
 ---------
 2001 Game
 ---------
-(c) Tomas Dolejsek 2024-01-24
+(c) Tomas Dolejsek 2024-01-28
 
 Implement the game of 2001. Below you will find the rules.
 

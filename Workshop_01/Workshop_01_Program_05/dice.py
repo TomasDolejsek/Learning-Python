@@ -3,7 +3,7 @@ Workshop_01 - Program_05
 ----
 Dice
 ----
-(c) Tomas Dolejsek 2024-01-23
+(c) Tomas Dolejsek 2024-01-28
 
 Board games and pen-and-paper RPG games use many types of dice, not just the well-known cubic ones.
 One of the most popular dice are, for example, a ten-sided one or even a hundred-sided one! Since dice are often tossed

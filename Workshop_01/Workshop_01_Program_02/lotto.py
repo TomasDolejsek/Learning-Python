@@ -3,7 +3,7 @@ Workshop_01 - Program_02
 ---------------
 LOTTO Simulator
 ---------------
-(c) Tomas Dolejsek 2024-01-15
+(c) Tomas Dolejsek 2024-01-28
 
 LOTTO is a numeric game that involves drawing 6 numbers from the range of 1 – 49. The player's task is to correctly
 guess the drawn numbers. You are rewarded if you correctly match 3, 4, 5 or 6 numbers.

@@ -3,7 +3,7 @@ Workshop_01 - Program_05_Mod_1
 --------------------------
 2001 Game - Modification_1
 --------------------------
-(c) Tomas Dolejsek 2024-01-24
+(c) Tomas Dolejsek 2024-01-28
 
 *** Modification 1 ***
 You've probably noticed that the current version of the game isn't very interactive, and it's all about clicking

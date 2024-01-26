@@ -3,7 +3,7 @@ Workshop_01 - Program_03
 ----------------------
 Number Guessing Game 2
 ----------------------
-(c) Tomas Dolejsek 2024-01-15
+(c) Tomas Dolejsek 2024-01-28
 
 The user should think of a number between 1 and 1000, and the computer should guess it. The computer
 will do it in no more than 10 moves (provided that the player is not cheating).
