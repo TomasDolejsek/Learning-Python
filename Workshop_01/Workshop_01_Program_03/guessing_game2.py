@@ -25,7 +25,7 @@ def player_input():
 
 def main():
     limit = 1000
-    print(f"Think about a number from 0 to {limit} and let me guess it!")
+    print(f"Think about a number from 1 to {limit} and let me guess it!")
     low, high = 1, limit
     attempts = 0
     while True:

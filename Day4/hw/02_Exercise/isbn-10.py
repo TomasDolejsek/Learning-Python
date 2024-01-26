@@ -1,6 +1,6 @@
 """
 08_Day_4_-_homework - 02_Exercise
-(c) Tomas Dolejsek 2024-01-19
+(c) Tomas Dolejsek 2024-01-28
 
 Write a Flask application that asks the user to enter a 10-digit ISBN number (on a GET "/" action), and then
 (on the POST "/" action) displays the information:
@@ -25,14 +25,14 @@ app = Flask(__name__)
 
 
 def validate_isbn(isbn):
+    pure_isbn = [x for x in isbn if x != '-']
+    if len(pure_isbn) != 10:
+        return False
+    check = 0
     try:
-        pure_isbn = [int(x) for x in isbn if x != '-']
-        if len(pure_isbn) != 10:
-            return False
-        check = 0
         for i, number in enumerate(pure_isbn[:-1]):
-            check += (i + 1) * number
-        return check % 11 == pure_isbn[-1]
+            check += (i + 1) * int(number)
+        return check % 11 == int(pure_isbn[-1])
     except ValueError:
         return False
 
