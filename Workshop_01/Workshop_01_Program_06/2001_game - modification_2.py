@@ -20,11 +20,10 @@ app.secret_key = "Very secret key"
 
 
 def calculate_roll(who, rolls):
-    flash(f"\n{who} picked D{rolls[0]} and D{rolls[1]}.")
-    flash(f"{who}'s rolls: ")
     x = randint(1, rolls[0])
     y = randint(1, rolls[1])
-    flash(f"{x} + {y} = {x + y}")
+    flash(f"{who} picked D{rolls[0]} and D{rolls[1]}.")
+    flash(f"{who}'s rolls: {x} + {y} = {x + y}")
     return x + y
 
 
@@ -43,47 +42,41 @@ def calculate_score(points, roll, round_number):
 
 def pick_computer_dice():
     correct_dice = (3, 4, 6, 8, 10, 12, 20, 100)
-    x = choice(correct_dice)
-    y = choice(correct_dice)
-    return x, y
+    return choice(correct_dice), choice(correct_dice)
 
 
 def play_round(round_number, score, rolls):
     limit = 2001
     winner = None
+    flash(f"Recapitulation of previous round no. {round_number - 1}:")
     for member in score:
         roll = calculate_roll(member, rolls[member])
-        score[member] = calculate_score(score[member], roll, round_number)
+        score[member] = calculate_score(score[member], roll, round_number - 1)
         if score[member] >= limit:
             winner = member
             break
-    return RoundResult(round_number, score['Player'], score['Computer'], winner)
+    return RoundResult(round=round_number, player=score['Player'], computer=score['Computer'],
+                       winner=winner)
 
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    rolls, score = dict(), dict()
     if request.method == 'GET':
-        return render_template('index.html', round=0, player=0, computer=0)
+        return render_template('index.html', round=0, player=0, computer=0, winner=None)
     if request.method == 'POST':
-        limit = 2001
-        rolls, score = dict(), dict()
-        round_number = int(request.form['round'])
+        round_number = int(request.form.get('round')) + 1  # new round
         winner = request.form.get('winner')
-        print(winner)
-        if winner == 'None':
-            round_number = 0
-        player = request.form.get('player_score')
-        computer = request.form.get('computer_score')
-        if round_number > 0:
-            dice1 = request.form.get('dice1')
-            dice2 = request.form.get('dice2')
-            rolls['Player'] = int(dice1), int(dice2)
+        if round_number > 1 and winner == 'None':
+            score['Player'] = int(request.form.get('player_score'))
+            score['Computer'] = int(request.form.get('computer_score'))
+            dice1 = int(request.form.get('dice1'))
+            dice2 = int(request.form.get('dice2'))
+            rolls['Player'] = dice1, dice2
             rolls['Computer'] = pick_computer_dice()
-            score['Player'] = int(player)
-            score['Computer'] = int(computer)
-            result = play_round(round_number + 1, score, rolls)
+            result = play_round(round_number, score, rolls)
         else:
-            result = RoundResult(1, 0, 0, None)
+            result = RoundResult(round=1, player=0, computer=0, winner=None)
         if result.winner:
             session['_flashes'].clear()  # clear flashes
         return render_template('game.html', winner=result.winner, round=result.round, player=result.player,
