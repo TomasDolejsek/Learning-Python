@@ -1,5 +1,5 @@
 from sqlalchemy import Column, String, Integer, ForeignKey, create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 import argparse
 from os.path import exists
 
@@ -40,7 +40,22 @@ class Serve(Base):
 
     serve_id = Column(Integer, primary_key=True)
     meal_id = Column(Integer, ForeignKey(Meal.meal_id), nullable=False)
+    meal = relationship('Meal')
     recipe_id = Column(Integer, ForeignKey(Recipe.recipe_id), nullable=False)
+    recipe = relationship('Recipe')
+
+
+class Quantity(Base):
+    __tablename__ = 'quantity'
+
+    quantity_id = Column(Integer, primary_key=True)
+    quantity = Column(Integer, nullable=False)
+    recipe_id = Column(Integer, ForeignKey(Recipe.recipe_id), nullable=False)
+    recipe = relationship('Recipe')
+    measure_id = Column(Integer, ForeignKey(Measure.measure_id), nullable=False)
+    measure = relationship('Measure')
+    ingredient_id = Column(Integer, ForeignKey(Ingredient.ingredient_id), nullable=False)
+    ingredient = relationship('Ingredient')
 
 
 class DatabaseProcessor:
@@ -71,6 +86,61 @@ class DatabaseProcessor:
         query = self.session.query(Meal)
         return [x for x in query]
 
+    def get_measures(self):
+        query = self.session.query(Measure)
+        return [x for x in query]
+
+    def get_ingredients(self):
+        query = self.session.query(Ingredient)
+        return [x for x in query]
+
+    def get_ingredient_data(self, ing):
+        split_ing = ing.split()
+        if len(split_ing) == 3:
+            quantity, measure, ingredient = split_ing
+        elif len(split_ing) == 2:
+            quantity, ingredient = split_ing
+            measure = None
+        else:
+            return False
+
+        try:
+            quantity = int(quantity)
+        except ValueError:
+            print("Quantity must be a number!")
+            return False
+
+        if not measure:
+            measure_id = 7  # empty measure id
+        else:
+            known_measures = self.get_measures()
+            same = 0
+            for m in known_measures:
+                if m.measure_name.startswith(measure):
+                    same += 1
+                    measure_id = m.measure_id
+            if same > 1:
+                print("The measure is not conclusive!")
+                return False
+            if same == 0:
+                print("No such measure!")
+                return False
+
+        known_ingredients = self.get_ingredients()
+        same = 0
+        for i in known_ingredients:
+            if ingredient in i.ingredient_name:
+                same += 1
+                ingredient_id = i.ingredient_id
+        if same > 1:
+            print("The ingredient is not conclusive!")
+            return False
+        if same == 0:
+            print("No such ingredient!")
+            return False
+
+        return quantity, measure_id, ingredient_id
+
     def close(self):
         self.session.close()
         self.engine.dispose()
@@ -84,6 +154,7 @@ class UserInterface:
     def start():
         recipe_id = 0
         serve_id = 0
+        quantity_id = 0
         meals = db.get_meals()
         while True:
             print("Pass the empty recipe name to exit.")
@@ -96,10 +167,24 @@ class UserInterface:
             served = input("\nWhen the dish can be served: ").split()
             recipe = Recipe(recipe_id=recipe_id, recipe_name=name, recipe_description=desc)
             db.add_to_db(recipe)
+
             for s in served:
                 serve = Serve(serve_id=serve_id, meal_id=int(s), recipe_id=recipe_id)
                 db.add_to_db(serve)
                 serve_id += 1
+
+            while True:
+                ingred = input("Input quantity of ingredient <press ENTER to stop>:" )
+                if not ingred:
+                    break
+                results = db.get_ingredient_data(ingred)
+                if not results:
+                    continue
+                quantity = Quantity(quantity_id=quantity_id, quantity=results[0], recipe_id=recipe_id,
+                                    measure_id=results[1], ingredient_id=results[2])
+                db.add_to_db(quantity)
+                quantity_id += 1
+
             recipe_id += 1
         db.close()
 
