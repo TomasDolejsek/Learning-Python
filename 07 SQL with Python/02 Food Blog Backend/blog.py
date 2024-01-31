@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, ForeignKey, create_engine, and_, or_
+from sqlalchemy import Column, String, Integer, ForeignKey, create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
 from sqlalchemy.sql import func
 import argparse
@@ -20,9 +20,9 @@ class Quantity(Base):
     __tablename__ = 'quantity'
     quantity_id = Column(Integer, primary_key=True)
     quantity = Column(Integer, nullable=False)
-    recipe_id = Column('recipe_id', Integer, ForeignKey('recipes.recipe_id'), nullable=False)
-   # measure_id = Column('measure_id', Integer, ForeignKey('measures.measure_id'), nullable=False)
-    ingredient_id = Column('ingredient_id', Integer, ForeignKey('ingredients.ingredient_id'), nullable=False)
+    recipe_id = Column(Integer, ForeignKey('recipes.recipe_id'), nullable=False)
+    measure_id = Column(Integer, ForeignKey('measures.measure_id'), nullable=False)
+    ingredient_id = Column(Integer, ForeignKey('ingredients.ingredient_id'), nullable=False)
 
 
 class Measure(Base):
@@ -30,7 +30,7 @@ class Measure(Base):
     measure_id = Column(Integer, primary_key=True)
     measure_name = Column(String, unique=True)
 
-    #recipes = relationship("Recipe", secondary='quantity', back_populates='measures', uselist=True)
+    recipes = relationship("Recipe", secondary='quantity', back_populates='measures')
 
 
 class Ingredient(Base):
@@ -38,7 +38,8 @@ class Ingredient(Base):
     ingredient_id = Column(Integer, primary_key=True)
     ingredient_name = Column(String, nullable=False, unique=True)
 
-    recipes = relationship("Recipe", secondary='quantity', back_populates='ingredients', uselist=True)
+    recipes = relationship("Recipe", secondary='quantity', back_populates='ingredients',
+                           overlaps='recipes')
 
 
 class Meal(Base):
@@ -46,7 +47,7 @@ class Meal(Base):
     meal_id = Column(Integer, primary_key=True)
     meal_name = Column(String, nullable=False, unique=True)
 
-   # recipes = relationship("Recipe", secondary='serve', back_populates='meals', uselist=True)
+    recipes = relationship("Recipe", secondary='serve', back_populates='meals')
 
 
 class Recipe(Base):
@@ -55,9 +56,11 @@ class Recipe(Base):
     recipe_name = Column(String, nullable=False)
     recipe_description = Column(String)
 
- #   meals = relationship('Meal', secondary='serve', back_populates='recipes', uselist=True)
-  #  measures = relationship("Measure", secondary='quantity', back_populates='recipes', uselist=True)
-    ingredients = relationship("Ingredient", secondary='quantity', back_populates='recipes', uselist=True)
+    meals = relationship('Meal', secondary='serve', back_populates='recipes')
+    measures = relationship("Measure", secondary='quantity', back_populates='recipes',
+                            overlaps='recipes')
+    ingredients = relationship("Ingredient", secondary='quantity', back_populates='recipes',
+                               overlaps='recipes, measures')
 
 
 class DatabaseProcessor:
@@ -97,22 +100,26 @@ class DatabaseProcessor:
         return [x for x in query]
 
     def get_recipes(self, wi, wm):
-        query = self.session.query(Recipe).join(Recipe.ingredients)
         if wi and wm:
-            filter_query = (query.filter(and_(Ingredient.ingredient_name in wi))
-                            .filter(or_(Meal.meal_name in wm)).all()
-                            )
+            query = self.session.query(Recipe).join(Recipe.ingredients).join(Recipe.meals)
+            filter_query = (
+                query.filter(Ingredient.ingredient_name.in_(wi))
+                .filter(Meal.meal_name.in_(wm))
+                .group_by(Recipe.recipe_id)
+                .having(func.count(Ingredient.ingredient_id) == len(wi))
+            )
         elif not wm:
-            conditions = [Ingredient.ingredient_name == i for i in wi]
+            query = self.session.query(Recipe).join(Recipe.ingredients)
             filter_query = (
                 query.filter(Ingredient.ingredient_name.in_(wi))
                 .group_by(Recipe.recipe_id)
                 .having(func.count(Ingredient.ingredient_id) == len(wi))
             )
         elif not wi:
-            filter_query = query.filter(or_(Meal.meal_name in wm)).all()
-        print(filter_query.all())
-        return [x.recipe_id for x in filter_query]
+            query = self.session.query(Recipe).join(Recipe.meals)
+            filter_query = query.filter(Meal.meal_name.in_(wm))
+
+        return [x.recipe_name for x in filter_query.all()]
 
     def get_ingredient_data(self, ing):
         split_ing = ing.split()
@@ -178,12 +185,11 @@ class UserInterface:
         wi = wanted_ings.split(',') if wanted_ings else None
         wm = wanted_meals.split(',') if wanted_meals else None
         result = db.get_recipes(wi, wm)
-        print(result)
         if result:
             print(f"Recipes selected for you: {', '.join(map(str,result))}")
         else:
             print("There are no such recipes in the database.")
-        print(wi)
+        db.close()
 
     @staticmethod
     def add_new_items():
